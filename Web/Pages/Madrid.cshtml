@@ -49,7 +49,12 @@
                     foreach (var item in Model.MVModel.SearchResults)
                     {
                         <tr>
-                            <td>@item.Brand</td>
+                            <td>
+                                <form method="get" asp-page="MadridDetail" asp-route-IntRegNo="@item.RegNo">
+                                    <input type="hidden" name="IntRegNo" value="@item.RegNo" />
+                                    <button type="submit" class="brand-link-button">@item.Brand</button>
+                                </form>
+                            </td>
                             <td><img src="@item.ImageUrl" alt="Image" width="50" height="50" /></td>
                             <td>@item.Status</td>
                             <td>@item.Origin</td>

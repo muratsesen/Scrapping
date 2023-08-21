@@ -8,14 +8,26 @@ using Core.Models;
 namespace Infrastructure.Services;
 public static class MadridService
 {
-    public static string GetList(string regNo, string? basicNo, string? holder)
+    public static string GetList(SearchInMadridModel model)
     {
         System.Console.WriteLine("Searching in Madird");
-        var madridResult = Scrape(regNo, basicNo, holder);
+        var madridResult = ScrapeList(model);
         System.Console.WriteLine("Madrid result: " + madridResult);
         return madridResult;
     }
-    public static string Scrape(string? IRNo, string basicNo, string _holder)
+    public static string GetDetail(SearchInMadridModel model)
+    {
+        System.Console.WriteLine("Searching in Madird");
+        var madridResult = ScrapeDetail(model);
+        System.Console.WriteLine("Madrid result: " + madridResult);
+        return madridResult;
+    }
+    public static string ScrapeDetail(SearchInMadridModel model)
+    {
+        return "";
+    }
+
+    public static string ScrapeList(SearchInMadridModel model)
     {
         IWebDriver driver = new FirefoxDriver();
 
@@ -30,23 +42,23 @@ public static class MadridService
         var basicNoInput = driver.FindElement(By.Id("BN_input"));
         var holderInput = driver.FindElement(By.Id("HOL_input"));
 
-        if (!string.IsNullOrEmpty(IRNo))
+        if (!string.IsNullOrEmpty(model.IntRegNo))
         {
-            intRegistrationInput.SendKeys(IRNo);
+            intRegistrationInput.SendKeys(model.IntRegNo);
             intRegistrationInput.SendKeys(Keys.Enter);
 
             return MultipleRow(driver);
         }
-        else if (!string.IsNullOrEmpty(basicNo))
+        else if (!string.IsNullOrEmpty(model.BaseNo))
         {
-            basicNoInput.SendKeys(basicNo);
+            basicNoInput.SendKeys(model.BaseNo);
             basicNoInput.SendKeys(Keys.Enter);
 
             return MultipleRow(driver);
         }
-        else if (!string.IsNullOrEmpty(_holder))
+        else if (!string.IsNullOrEmpty(model.HolderName))
         {
-            holderInput.SendKeys(_holder);
+            holderInput.SendKeys(model.HolderName);
             holderInput.SendKeys(Keys.Enter);
 
             return MultipleRow(driver);
