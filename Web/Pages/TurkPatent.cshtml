@@ -9,16 +9,20 @@
         <form method="post">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group">
-                <label asp-for="TPModel.SearchModel.IntRegNo" class="control-label"></label>
-                <input asp-for="TPModel.SearchModel.IntRegNo" class="form-control" />
+                <label asp-for="TPModel.SearchModel.ApplicationNumber" class="control-label">Başvuru Numarası</label>
+                <input asp-for="TPModel.SearchModel.ApplicationNumber" class="form-control" />
             </div>
             <div class="form-group">
-                <label asp-for="TPModel.SearchModel.BaseNo" class="control-label"></label>
-                <input asp-for="TPModel.SearchModel.BaseNo" class="form-control" />
+                <label asp-for="TPModel.SearchModel.RegistrationNumber" class="control-label">Tescil Numarası</label>
+                <input asp-for="TPModel.SearchModel.RegistrationNumber" class="form-control" />
             </div>
             <div class="form-group">
-                <label asp-for="TPModel.SearchModel.HolderName" class="control-label"></label>
-                <input asp-for="TPModel.SearchModel.HolderName" class="form-control" />
+                <label asp-for="TPModel.SearchModel.ApplicantInfo" class="control-label">Başvuru Sahibi Bilgisi Müşteri Numarası</label>
+                <input asp-for="TPModel.SearchModel.ApplicantInfo" class="form-control" />
+            </div>
+            <div class="form-group">
+                <label asp-for="TPModel.SearchModel.BulletinNumber" class="control-label">Marka İlan Bülten Numarası</label>
+                <input asp-for="TPModel.SearchModel.BulletinNumber" class="form-control" />
             </div>
             <div class="form-group">
                 <input type="submit" value="Ara" class="btn btn-primary" />
@@ -26,6 +30,7 @@
         </form>
     </div>
 </div>
+
 
 <div class="row">
     <div class="col-md-6">

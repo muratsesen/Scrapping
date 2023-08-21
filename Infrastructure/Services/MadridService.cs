@@ -8,14 +8,14 @@ using Core.Models;
 namespace Infrastructure.Services;
 public static class MadridService
 {
-    public static string GetMadrid(string regNo, string? basicNo, string? holder)
+    public static string GetList(string regNo, string? basicNo, string? holder)
     {
         System.Console.WriteLine("Searching in Madird");
-        var madridResult = Madrid(regNo, basicNo, holder);
+        var madridResult = Scrape(regNo, basicNo, holder);
         System.Console.WriteLine("Madrid result: " + madridResult);
         return madridResult;
     }
-    public static string Madrid(string? IRNo, string basicNo, string _holder)
+    public static string Scrape(string? IRNo, string basicNo, string _holder)
     {
         IWebDriver driver = new FirefoxDriver();
 
@@ -55,55 +55,7 @@ public static class MadridService
         return "";
 
     }
-    public static string SingleRow(IWebDriver driver)
-    {
-        IWebElement table = driver.FindElement(By.Id("gridForsearch_pane"));
-        IWebElement tableBody = table.FindElement(By.TagName("tbody"));
 
-        IWebElement brandElement = tableBody.FindElement(By.CssSelector("[aria-describedby='gridForsearch_pane_BRAND']"));
-
-        IWebElement imgTdElement = driver.FindElement(By.CssSelector("[aria-describedby='gridForsearch_pane_IMG']"));
-        IWebElement imgElement = imgTdElement.FindElement(By.TagName("img"));
-        string srcAttributeValue = imgElement.GetAttribute("src");
-
-        IWebElement statusElement = tableBody.FindElement(By.CssSelector("[aria-describedby='gridForsearch_pane_STATUS']"));
-        IWebElement statusDiv = statusElement.FindElement(By.XPath(".//div[1]"));
-
-        IWebElement originElement = tableBody.FindElement(By.CssSelector("[aria-describedby='gridForsearch_pane_OO']"));
-        IWebElement holderElement = tableBody.FindElement(By.CssSelector("[aria-describedby='gridForsearch_pane_HOL']"));
-        IWebElement irnElement = tableBody.FindElement(By.CssSelector("[aria-describedby='gridForsearch_pane_IRN']"));
-        IWebElement rdElement = tableBody.FindElement(By.CssSelector("[aria-describedby='gridForsearch_pane_RD']"));
-        IWebElement ncElement = tableBody.FindElement(By.CssSelector("[aria-describedby='gridForsearch_pane_NC']"));
-        IWebElement vcsElement = tableBody.FindElement(By.CssSelector("[aria-describedby='gridForsearch_pane_VCS']"));
-
-        // Extract the text content from the elements
-        string brand = brandElement.Text;
-        string imageUrl = srcAttributeValue;
-        string status = statusDiv.Text;
-        string origin = originElement.Text;
-        string holder = holderElement.Text;
-        string irn = irnElement.Text;
-        string rd = rdElement.Text;
-        string nc = ncElement.Text;
-        string vcs = vcsElement.Text;
-
-        SearchResultItem searchResultItem = new SearchResultItem()
-        {
-            Brand = brand,
-            ImageUrl = imageUrl,
-            Status = status,
-            Origin = origin,
-            Holder = holder,
-            RegNo = irn,
-            RegDate = rd,
-            NiceCI = nc,
-            ViennaCI = vcs,
-        };
-
-        // driver.Quit();
-
-        return JsonSerializer.Serialize(searchResultItem);
-    }
     public static string MultipleRow(IWebDriver driver)
     {
         IWebElement pageCountElement = driver.FindElement(By.ClassName("pageCount"));
@@ -115,10 +67,6 @@ public static class MadridService
         var pageCount = ExtractNumber(pageCountText);
         if (pageCount == -1) return "";
 
-        if (pageCount == 1)
-        {
-            return SingleRow(driver);
-        }
 
         List<SearchResultItem> searchResultItems = new List<SearchResultItem>();
         for (int i = 1; i <= pageCount; i++)
@@ -256,6 +204,4 @@ public static class MadridService
     //     IWebElement originElement = tableBody.FindElement(By.CssSelector("[aria-describedby='gridForsearch_pane_OO']"));
 
     // }
-
-
 }

@@ -23,7 +23,7 @@ namespace Web.Pages
         public void OnPost()
         {
             Console.WriteLine("reg no" + MVModel.SearchModel.IntRegNo);
-            var jsonResponse = MadridService.GetMadrid(MVModel.SearchModel.IntRegNo, MVModel.SearchModel.BaseNo, MVModel.SearchModel.HolderName);
+            var jsonResponse = MadridService.GetList(MVModel.SearchModel.IntRegNo, MVModel.SearchModel.BaseNo, MVModel.SearchModel.HolderName);
 
             if (jsonResponse == null) return;
 

@@ -21,7 +21,7 @@ namespace Web.Pages
         }
         public void OnPost()
         {
-            var jsonResponse = MadridService.GetMadrid(TPModel.SearchModel.IntRegNo, TPModel.SearchModel.BaseNo, TPModel.SearchModel.HolderName);
+            var jsonResponse = TurkPatentService.GetList(TPModel.SearchModel);
 
             if (jsonResponse == null) return;
 
