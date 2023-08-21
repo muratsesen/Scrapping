@@ -1,8 +1,8 @@
 namespace Core.Models;
 
 
-public class TPViewModel
+public class MadridViewModel
 {
-    public SearchInTPModel SearchModel { get; set; }
+    public SearchInMadridModel SearchModel { get; set; }
     public IEnumerable<SearchResultItem>? SearchResults { get; set; }
 }

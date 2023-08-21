@@ -1,0 +1,74 @@
+﻿@page
+@model Web.Pages.MadridModel
+@{
+    ViewData["Title"] = "Madrid";
+}
+
+<div class="row">
+    <div class="col-md-4">
+        <form method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="MVModel.SearchModel.IntRegNo" class="control-label"></label>
+                <input asp-for="MVModel.SearchModel.IntRegNo" class="form-control" />
+            </div>
+            <div class="form-group">
+                <label asp-for="MVModel.SearchModel.BaseNo" class="control-label"></label>
+                <input asp-for="MVModel.SearchModel.BaseNo" class="form-control" />
+            </div>
+            <div class="form-group">
+                <label asp-for="MVModel.SearchModel.HolderName" class="control-label"></label>
+                <input asp-for="MVModel.SearchModel.HolderName" class="form-control" />
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Ara" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Brand</th>
+                    <th>Image</th>
+                    <th>Status</th>
+                    <th>Origin</th>
+                    <th>Holder</th>
+                    <th>Reg No</th>
+                    <th>Reg Date</th>
+                    <th>Nice CI</th>
+                    <th>Vienna CI</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.MVModel.SearchResults != null)
+                {
+                    foreach (var item in Model.MVModel.SearchResults)
+                    {
+                        <tr>
+                            <td>@item.Brand</td>
+                            <td><img src="@item.ImageUrl" alt="Image" width="50" height="50" /></td>
+                            <td>@item.Status</td>
+                            <td>@item.Origin</td>
+                            <td>@item.Holder</td>
+                            <td>@item.RegNo</td>
+                            <td>@item.RegDate</td>
+                            <td>@item.NiceCI</td>
+                            <td>@item.ViennaCI</td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="9">No search results found.</td>
+                    </tr>
+                }
+
+            </tbody>
+        </table>
+    </div>
+</div>
