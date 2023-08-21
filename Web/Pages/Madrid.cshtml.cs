@@ -15,6 +15,13 @@ namespace Web.Pages
         [BindProperty]
         public MadridViewModel MVModel { get; set; }
 
+        private IService service;
+
+        public MadridModel(IService service)
+        {
+            this.service = service;
+        }
+
         public void OnGet()
         {
             MVModel = new MadridViewModel();
@@ -24,7 +31,7 @@ namespace Web.Pages
         public void OnPost()
         {
             Console.WriteLine("reg no" + MVModel.SearchModel.IntRegNo);
-            var jsonResponse = MadridService.GetList(MVModel.SearchModel);
+            var jsonResponse = service.GetList(MVModel.SearchModel);
 
             if (jsonResponse == null) return;
 

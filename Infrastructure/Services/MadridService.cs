@@ -6,16 +6,22 @@ using System.Text.Json;
 using Core.Models;
 
 namespace Infrastructure.Services;
-public static class MadridService
+public class MadridService : IService
 {
-    public static string GetList(SearchInMadridModel model)
+    private readonly IWebDriver driver;
+    public MadridService(IWebDriver _driver)
+    {
+        driver = _driver;
+    }
+
+    public string GetList(SearchInMadridModel model)
     {
         System.Console.WriteLine("Searching in Madird");
         var madridResult = ScrapeList(model);
         System.Console.WriteLine("Madrid result: " + madridResult);
         return madridResult;
     }
-    public static string GetDetail(SearchInMadridModel model)
+    public string GetDetail(SearchInMadridModel model)
     {
         System.Console.WriteLine("Searching in Madird");
         var madridResult = ScrapeDetail(model);
@@ -27,10 +33,8 @@ public static class MadridService
         return "";
     }
 
-    public static string ScrapeList(SearchInMadridModel model)
+    public string ScrapeList(SearchInMadridModel model)
     {
-        IWebDriver driver = new FirefoxDriver();
-
         driver.Navigate().GoToUrl("https://www3.wipo.int/madrid/monitor/en/");
 
         driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromMilliseconds(500);
@@ -68,7 +72,7 @@ public static class MadridService
 
     }
 
-    public static string MultipleRow(IWebDriver driver)
+    public string MultipleRow(IWebDriver driver)
     {
         IWebElement pageCountElement = driver.FindElement(By.ClassName("pageCount"));
 
@@ -98,7 +102,7 @@ public static class MadridService
         }
         return JsonSerializer.Serialize(searchResultItems);
     }
-    public static List<SearchResultItem> ProcessPage(IWebDriver driver)
+    public List<SearchResultItem> ProcessPage(IWebDriver driver)
     {
         List<SearchResultItem> searchResultItems = new List<SearchResultItem>();
 
