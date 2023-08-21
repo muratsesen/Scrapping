@@ -1,5 +1,5 @@
 public interface IMadridService
 {
-    string GetList(SearchModel model);
-    string GetDetail(SearchModel model);
+    string GetList(MadridSearchModel model);
+    string GetDetail(MadridSearchModel model);
 }

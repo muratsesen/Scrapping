@@ -14,26 +14,27 @@ public class TurkPatentService : ITurkPatentService
         this.driver = driver;
     }
 
-    public string GetList(SearchModel searchInTPModel)
+    public string GetList(TPSearchInBrandsModel brandModel)
     {
-        System.Console.WriteLine("Searching in Turkpatent");
-        var result = Scrape(searchInTPModel);
-        System.Console.WriteLine("Turkpatent result: " + result);
+        var result = Scrape(brandModel);
+
         return result;
     }
-    public string Scrape(SearchModel searchInTPModel)
+    public string Scrape(TPSearchInBrandsModel brandModel)
     {
 
         driver.Navigate().GoToUrl("https://www.turkpatent.gov.tr/arastirma-yap?form=trademark");
 
         driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromMilliseconds(500);
 
-        //var advanceSearchButton = driver.FindElement(By.Id("advancedModeLink"));
-        //advanceSearchButton.Click();
+        var searchButton = driver.FindElement(By.CssSelector(".MuiButtonBase-root.MuiButton-root.MuiButton-contained.MuiButton-containedSecondary"));
 
-        //var intRegistrationInput = driver.FindElement(By.Id("IRN_input"));
-        //var basicNoInput = driver.FindElement(By.Id("BN_input"));
-        //var holderInput = driver.FindElement(By.Id("HOL_input"));
+
+        var applicationOwner = driver.FindElement(By.CssSelector("input[placeholder='Başvuru Sahibi']"));
+
+        applicationOwner.SendKeys(brandModel.ApplicationOwner);
+
+        searchButton.Click();
 
         // if (!string.IsNullOrEmpty(IRNo))
         // {
@@ -60,55 +61,6 @@ public class TurkPatentService : ITurkPatentService
         return "{\"response\": \"No data found\"}";
 
     }
-    public string SingleRow(IWebDriver driver)
-    {
-        IWebElement table = driver.FindElement(By.Id("gridForsearch_pane"));
-        IWebElement tableBody = table.FindElement(By.TagName("tbody"));
-
-        IWebElement brandElement = tableBody.FindElement(By.CssSelector("[aria-describedby='gridForsearch_pane_BRAND']"));
-
-        IWebElement imgTdElement = driver.FindElement(By.CssSelector("[aria-describedby='gridForsearch_pane_IMG']"));
-        IWebElement imgElement = imgTdElement.FindElement(By.TagName("img"));
-        string srcAttributeValue = imgElement.GetAttribute("src");
-
-        IWebElement statusElement = tableBody.FindElement(By.CssSelector("[aria-describedby='gridForsearch_pane_STATUS']"));
-        IWebElement statusDiv = statusElement.FindElement(By.XPath(".//div[1]"));
-
-        IWebElement originElement = tableBody.FindElement(By.CssSelector("[aria-describedby='gridForsearch_pane_OO']"));
-        IWebElement holderElement = tableBody.FindElement(By.CssSelector("[aria-describedby='gridForsearch_pane_HOL']"));
-        IWebElement irnElement = tableBody.FindElement(By.CssSelector("[aria-describedby='gridForsearch_pane_IRN']"));
-        IWebElement rdElement = tableBody.FindElement(By.CssSelector("[aria-describedby='gridForsearch_pane_RD']"));
-        IWebElement ncElement = tableBody.FindElement(By.CssSelector("[aria-describedby='gridForsearch_pane_NC']"));
-        IWebElement vcsElement = tableBody.FindElement(By.CssSelector("[aria-describedby='gridForsearch_pane_VCS']"));
-
-        // Extract the text content from the elements
-        string brand = brandElement.Text;
-        string imageUrl = srcAttributeValue;
-        string status = statusDiv.Text;
-        string origin = originElement.Text;
-        string holder = holderElement.Text;
-        string irn = irnElement.Text;
-        string rd = rdElement.Text;
-        string nc = ncElement.Text;
-        string vcs = vcsElement.Text;
-
-        SearchResultItem searchResultItem = new SearchResultItem()
-        {
-            Brand = brand,
-            ImageUrl = imageUrl,
-            Status = status,
-            Origin = origin,
-            Holder = holder,
-            RegNo = irn,
-            RegDate = rd,
-            NiceCI = nc,
-            ViennaCI = vcs,
-        };
-
-        // driver.Quit();
-
-        return JsonSerializer.Serialize(searchResultItem);
-    }
     public string MultipleRow(IWebDriver driver)
     {
         IWebElement pageCountElement = driver.FindElement(By.ClassName("pageCount"));
@@ -119,11 +71,6 @@ public class TurkPatentService : ITurkPatentService
             return "";
         var pageCount = ExtractNumber(pageCountText);
         if (pageCount == -1) return "";
-
-        if (pageCount == 1)
-        {
-            return SingleRow(driver);
-        }
 
         List<SearchResultItem> searchResultItems = new List<SearchResultItem>();
         for (int i = 1; i <= pageCount; i++)
@@ -239,7 +186,7 @@ public class TurkPatentService : ITurkPatentService
         return -1; // Return a default value if extraction fails
     }
 
-    public string GetDetail(SearchModel model)
+    public string GetDetail(TPSearchInBrandsModel model)
     {
         throw new NotImplementedException();
     }

@@ -25,7 +25,7 @@ namespace Web.Pages
         public void OnGet()
         {
             MVModel = new MadridViewModel();
-            MVModel.SearchModel = new SearchModel();
+            MVModel.SearchModel = new MadridSearchModel();
         }
 
         public void OnPost()

@@ -1,5 +1,5 @@
 public interface ITurkPatentService
 {
-    string GetList(SearchModel model);
-    string GetDetail(SearchModel model);
+    string GetList(TPSearchInBrandsModel model);
+    string GetDetail(TPSearchInBrandsModel model);
 }

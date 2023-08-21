@@ -1,79 +1,64 @@
 ﻿@page
 @model Web.Pages.TurkPatentModel
 @{
-    ViewData["Title"] = "Madrid";
+    ViewData["Title"] = "TP";
 }
 
-<div class="row">
-    <div class="col-md-4">
-        <form method="post">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+<ul class="nav nav-tabs" id="myTab" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#home" type="button"
+                role="tab" aria-controls="home" aria-selected="true">
+            Marka Araştırma
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile" type="button"
+                role="tab" aria-controls="profile" aria-selected="false">
+            Dosya Takibi
+        </button>
+    </li>
+</ul>
+<div class="tab-content" id="myTabContent">
+    <div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="home-tab">
+        <form method="post" asp-page-handler="Brand">
             <div class="form-group">
-                <label asp-for="TPModel.SearchModel.ApplicationNumber" class="control-label">Başvuru Numarası</label>
-                <input asp-for="TPModel.SearchModel.ApplicationNumber" class="form-control" />
+                <label asp-for="BrandSearchModel.ApplicationOwner"></label>
+                <input asp-for="BrandSearchModel.ApplicationOwner" class="form-control" />
             </div>
             <div class="form-group">
-                <label asp-for="TPModel.SearchModel.RegistrationNumber" class="control-label">Tescil Numarası</label>
-                <input asp-for="TPModel.SearchModel.RegistrationNumber" class="form-control" />
+                <label asp-for="BrandSearchModel.BrandAdvertisementBulletinNumber"></label>
+                <input asp-for="BrandSearchModel.BrandAdvertisementBulletinNumber" class="form-control" />
             </div>
             <div class="form-group">
-                <label asp-for="TPModel.SearchModel.ApplicantInfo" class="control-label">Başvuru Sahibi Bilgisi Müşteri Numarası</label>
-                <input asp-for="TPModel.SearchModel.ApplicantInfo" class="form-control" />
+                <label asp-for="BrandSearchModel.IndividualNumber"></label>
+                <input asp-for="BrandSearchModel.IndividualNumber" class="form-control" />
+            </div>
+            <button type="submit" class="btn btn-primary">Brand Search</button>
+        </form>
+
+    </div>
+    <div class="tab-pane fade" id="profile" role="tabpanel" aria-labelledby="profile-tab">
+
+        <form method="post" asp-page-handler="Files">
+            <div class="form-group">
+                <label asp-for="SearchFilesModel.ApplicationNumber"></label>
+                <input asp-for="SearchFilesModel.ApplicationNumber" class="form-control" />
             </div>
             <div class="form-group">
-                <label asp-for="TPModel.SearchModel.BulletinNumber" class="control-label">Marka İlan Bülten Numarası</label>
-                <input asp-for="TPModel.SearchModel.BulletinNumber" class="form-control" />
+                <label asp-for="SearchFilesModel.RegistrationNumber"></label>
+                <input asp-for="SearchFilesModel.RegistrationNumber" class="form-control" />
             </div>
             <div class="form-group">
-                <input type="submit" value="Ara" class="btn btn-primary" />
+                <label asp-for="SearchFilesModel.ApplicantInfo"></label>
+                <input asp-for="SearchFilesModel.ApplicantInfo" class="form-control" />
             </div>
+            <div class="form-group">
+                <label asp-for="SearchFilesModel.BulletinNumber"></label>
+                <input asp-for="SearchFilesModel.BulletinNumber" class="form-control" />
+            </div>
+            <button type="submit" class="btn btn-primary">Search Files</button>
         </form>
     </div>
 </div>
 
 
-<div class="row">
-    <div class="col-md-6">
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>Brand</th>
-                    <th>Image</th>
-                    <th>Status</th>
-                    <th>Origin</th>
-                    <th>Holder</th>
-                    <th>Reg No</th>
-                    <th>Reg Date</th>
-                    <th>Nice CI</th>
-                    <th>Vienna CI</th>
-                </tr>
-            </thead>
-            <tbody>
-                @if (Model.TPModel.SearchResults != null)
-                {
-                    foreach (var item in Model.TPModel.SearchResults)
-                    {
-                        <tr>
-                            <td>@item.Brand</td>
-                            <td><img src="@item.ImageUrl" alt="Image" width="50" height="50" /></td>
-                            <td>@item.Status</td>
-                            <td>@item.Origin</td>
-                            <td>@item.Holder</td>
-                            <td>@item.RegNo</td>
-                            <td>@item.RegDate</td>
-                            <td>@item.NiceCI</td>
-                            <td>@item.ViennaCI</td>
-                        </tr>
-                    }
-                }
-                else
-                {
-                    <tr>
-                        <td colspan="9">No search results found.</td>
-                    </tr>
-                }
-
-            </tbody>
-        </table>
-    </div>
-</div>

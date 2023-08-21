@@ -14,26 +14,26 @@ public class MadridService : IMadridService
         driver = _driver;
     }
 
-    public string GetList(SearchModel model)
+    public string GetList(MadridSearchModel model)
     {
         System.Console.WriteLine("Searching in Madird");
         var madridResult = ScrapeList(model);
         System.Console.WriteLine("Madrid result: " + madridResult);
         return madridResult;
     }
-    public string GetDetail(SearchModel model)
+    public string GetDetail(MadridSearchModel model)
     {
         System.Console.WriteLine("Searching in Madird");
         var madridResult = ScrapeDetail(model);
         System.Console.WriteLine("Madrid result: " + madridResult);
         return madridResult;
     }
-    public static string ScrapeDetail(SearchModel model)
+    public static string ScrapeDetail(MadridSearchModel model)
     {
         return "";
     }
 
-    public string ScrapeList(SearchModel model)
+    public string ScrapeList(MadridSearchModel model)
     {
         driver.Navigate().GoToUrl("https://www3.wipo.int/madrid/monitor/en/");
 

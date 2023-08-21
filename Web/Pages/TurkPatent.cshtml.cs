@@ -13,7 +13,10 @@ namespace Web.Pages
     public class TurkPatentModel : PageModel
     {
         [BindProperty]
-        public TPViewModel TPModel { get; set; }
+        public TPSearchInFilesModel SearchFilesModel { get; set; }
+
+        [BindProperty]
+        public TPSearchInBrandsModel BrandSearchModel { get; set; }
 
         private ITurkPatentService service;
 
@@ -24,17 +27,23 @@ namespace Web.Pages
 
         public void OnGet()
         {
-            TPModel = new TPViewModel();
-            TPModel.SearchModel = new SearchModel();
         }
-        public void OnPost()
+        public IActionResult OnPostFiles()
         {
-            var jsonResponse = service.GetList(TPModel.SearchModel);
-
-            if (jsonResponse == null) return;
-
-            var searchResultList = JsonSerializer.Deserialize<IEnumerable<Core.Models.SearchResultItem>>(jsonResponse);
-            TPModel.SearchResults = searchResultList;
+            // Handle form submission for Search Files
+            // Access data using SearchFilesModel
+            var items = SearchFilesModel;
+            return Page(); // Return Page to stay on the same page
         }
+
+        public IActionResult OnPostBrand()
+        {
+            // Handle form submission for Brand Search
+            // Access data using BrandSearchModel
+            var items = BrandSearchModel;
+            service.GetList(BrandSearchModel);
+            return Page(); // Return Page to stay on the same page
+        }
+
     }
 }
