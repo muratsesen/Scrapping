@@ -6,18 +6,23 @@ using System.Text.Json;
 using Core.Models;
 
 namespace Infrastructure.Services;
-public static class TurkPatentService
+public class TurkPatentService : ITurkPatentService
 {
-    public static string GetList(SearchInTPModel searchInTPModel)
+    private IWebDriver driver;
+    public TurkPatentService(IWebDriver driver)
+    {
+        this.driver = driver;
+    }
+
+    public string GetList(SearchModel searchInTPModel)
     {
         System.Console.WriteLine("Searching in Turkpatent");
-        var madridResult = Scrape(searchInTPModel);
-        System.Console.WriteLine("Turkpatent result: " + madridResult);
-        return madridResult;
+        var result = Scrape(searchInTPModel);
+        System.Console.WriteLine("Turkpatent result: " + result);
+        return result;
     }
-    public static string Scrape(SearchInTPModel searchInTPModel)
+    public string Scrape(SearchModel searchInTPModel)
     {
-        IWebDriver driver = new FirefoxDriver();
 
         driver.Navigate().GoToUrl("https://www.turkpatent.gov.tr/arastirma-yap?form=trademark");
 
@@ -55,7 +60,7 @@ public static class TurkPatentService
         return "{\"response\": \"No data found\"}";
 
     }
-    public static string SingleRow(IWebDriver driver)
+    public string SingleRow(IWebDriver driver)
     {
         IWebElement table = driver.FindElement(By.Id("gridForsearch_pane"));
         IWebElement tableBody = table.FindElement(By.TagName("tbody"));
@@ -104,7 +109,7 @@ public static class TurkPatentService
 
         return JsonSerializer.Serialize(searchResultItem);
     }
-    public static string MultipleRow(IWebDriver driver)
+    public string MultipleRow(IWebDriver driver)
     {
         IWebElement pageCountElement = driver.FindElement(By.ClassName("pageCount"));
 
@@ -138,7 +143,7 @@ public static class TurkPatentService
         }
         return JsonSerializer.Serialize(searchResultItems);
     }
-    public static List<SearchResultItem> ProcessPage(IWebDriver driver)
+    public List<SearchResultItem> ProcessPage(IWebDriver driver)
     {
         List<SearchResultItem> searchResultItems = new List<SearchResultItem>();
 
@@ -217,7 +222,7 @@ public static class TurkPatentService
         return searchResultItems;
     }
 
-    static int ExtractNumber(string input)
+    int ExtractNumber(string input)
     {
         int startIndex = input.IndexOf('/') + 1;
         int endIndex = input.Length;
@@ -232,6 +237,11 @@ public static class TurkPatentService
         }
 
         return -1; // Return a default value if extraction fails
+    }
+
+    public string GetDetail(SearchModel model)
+    {
+        throw new NotImplementedException();
     }
 
     // SearchResultItem ProcessRow(IWebDriver driver, int pageCount, List<SearchResultItem> searchResultItems)

@@ -14,14 +14,22 @@ namespace Web.Pages
     {
         [BindProperty]
         public TPViewModel TPModel { get; set; }
+
+        private ITurkPatentService service;
+
+        public TurkPatentModel(ITurkPatentService service)
+        {
+            this.service = service;
+        }
+
         public void OnGet()
         {
             TPModel = new TPViewModel();
-            TPModel.SearchModel = new SearchInTPModel();
+            TPModel.SearchModel = new SearchModel();
         }
         public void OnPost()
         {
-            var jsonResponse = TurkPatentService.GetList(TPModel.SearchModel);
+            var jsonResponse = service.GetList(TPModel.SearchModel);
 
             if (jsonResponse == null) return;
 

@@ -12,7 +12,8 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddInfrastructure(this IServiceCollection services)
     {
         services.AddSingleton<IWebDriver, FirefoxDriver>();
-        services.AddSingleton<IService, MadridService>();
+        services.AddSingleton<IMadridService, MadridService>();
+        services.AddSingleton<ITurkPatentService, TurkPatentService>();
 
         return services;
     }

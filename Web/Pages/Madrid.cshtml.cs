@@ -15,9 +15,9 @@ namespace Web.Pages
         [BindProperty]
         public MadridViewModel MVModel { get; set; }
 
-        private IService service;
+        private IMadridService service;
 
-        public MadridModel(IService service)
+        public MadridModel(IMadridService service)
         {
             this.service = service;
         }
@@ -25,7 +25,7 @@ namespace Web.Pages
         public void OnGet()
         {
             MVModel = new MadridViewModel();
-            MVModel.SearchModel = new SearchInMadridModel();
+            MVModel.SearchModel = new SearchModel();
         }
 
         public void OnPost()

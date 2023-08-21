@@ -3,6 +3,6 @@ namespace Core.Models;
 
 public class MadridViewModel
 {
-    public SearchInMadridModel SearchModel { get; set; }
+    public SearchModel SearchModel { get; set; }
     public IEnumerable<SearchResultItem>? SearchResults { get; set; }
 }

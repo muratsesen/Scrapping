@@ -6,7 +6,7 @@ using System.Text.Json;
 using Core.Models;
 
 namespace Infrastructure.Services;
-public class MadridService : IService
+public class MadridService : IMadridService
 {
     private readonly IWebDriver driver;
     public MadridService(IWebDriver _driver)
@@ -14,26 +14,26 @@ public class MadridService : IService
         driver = _driver;
     }
 
-    public string GetList(SearchInMadridModel model)
+    public string GetList(SearchModel model)
     {
         System.Console.WriteLine("Searching in Madird");
         var madridResult = ScrapeList(model);
         System.Console.WriteLine("Madrid result: " + madridResult);
         return madridResult;
     }
-    public string GetDetail(SearchInMadridModel model)
+    public string GetDetail(SearchModel model)
     {
         System.Console.WriteLine("Searching in Madird");
         var madridResult = ScrapeDetail(model);
         System.Console.WriteLine("Madrid result: " + madridResult);
         return madridResult;
     }
-    public static string ScrapeDetail(SearchInMadridModel model)
+    public static string ScrapeDetail(SearchModel model)
     {
         return "";
     }
 
-    public string ScrapeList(SearchInMadridModel model)
+    public string ScrapeList(SearchModel model)
     {
         driver.Navigate().GoToUrl("https://www3.wipo.int/madrid/monitor/en/");
 
