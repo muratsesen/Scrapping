@@ -1,4 +1,4 @@
-public class SearchInTPModel
+public class SearchInMadridModel
 {
     public string IntRegNo { get; set; }//="1254874";
     public string BaseNo { get; set; }
