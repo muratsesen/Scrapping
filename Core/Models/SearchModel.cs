@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 public class MadridSearchModel
 {
-    public string IntRegNo { get; set; }//="1254874";
+    public string RegistrationNo { get; set; }//="1254874";
     public string BaseNo { get; set; }
     public string HolderName { get; set; }// = "beko";
 }

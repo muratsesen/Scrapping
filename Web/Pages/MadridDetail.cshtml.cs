@@ -4,19 +4,36 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Core.Models;
+using System.Text.Json;
 
 namespace Web.Pages
 {
     public class MadridDetailModel : PageModel
     {
-        public string IntRegNo { get; set; }
+        public string RegistrationNo { get; set; }
         public string BaseNo { get; set; }
         public string HolderName { get; set; }
+        [BindProperty]
+        public SearchResultDetail SearchResultDetail { get; set; }
 
-        public void OnGet(string intRegNo)
+        private IMadridService service;
+
+        public MadridDetailModel(IMadridService service)
         {
-            IntRegNo = intRegNo;
-            // You can use these parameters to fetch and display the detailed information
+            this.service = service;
+        }
+
+
+        public void OnGet(string registrationNo)
+        {
+            RegistrationNo = registrationNo;
+            var jsonResponse = service.GetList(new MadridSearchModel { RegistrationNo = registrationNo });
+
+            if (jsonResponse == null) return;
+
+            var searchResultList = JsonSerializer.Deserialize<IEnumerable<Core.Models.SearchResultDetail>>(jsonResponse);
+            SearchResultDetail = searchResultList?.FirstOrDefault();
         }
     }
 }

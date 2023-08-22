@@ -3,4 +3,24 @@
 @{
 }
 
-<h1>Details</h1>
+<h1>Search Result Detail</h1>
+
+<div>
+    <h2>Brand: @Model.SearchResultDetail.Brand</h2>
+    <p>Image URL: @Model.SearchResultDetail.ImageUrl</p>
+    <p>Status: @Model.SearchResultDetail.Status</p>
+    <p>Registration Number: @Model.SearchResultDetail.RegistrationNo</p>
+    <p>Registration Date: @Model.SearchResultDetail.RegistrationDate</p>
+    <p>Registration End Date: @Model.SearchResultDetail.RegistrationEndDate</p>
+    <h3>Holder Information</h3>
+    <p>Name: @Model.SearchResultDetail.Holder.Name</p>
+    <p>Address: @Model.SearchResultDetail.Holder.Address1, @Model.SearchResultDetail.Holder.Address2, @Model.SearchResultDetail.Holder.Address3</p>
+    <h3>Goods and Services</h3>
+    @foreach (var item in Model.SearchResultDetail.GoodsAndServices)
+    {
+        <p>Code: @item.Code</p>
+        <p>Description: @item.Description</p>
+    }
+    <p>Basic Application: @Model.SearchResultDetail.BasicApplication</p>
+    <p>Designations: @Model.SearchResultDetail.Designations</p>
+</div>

@@ -9,16 +9,16 @@
         <form method="post">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group">
-                <label asp-for="MVModel.SearchModel.IntRegNo" class="control-label"></label>
-                <input asp-for="MVModel.SearchModel.IntRegNo" class="form-control" />
+                <label asp-for="SearchModel.RegistrationNo" class="control-label"></label>
+                <input asp-for="SearchModel.RegistrationNo" class="form-control" />
             </div>
             <div class="form-group">
-                <label asp-for="MVModel.SearchModel.BaseNo" class="control-label"></label>
-                <input asp-for="MVModel.SearchModel.BaseNo" class="form-control" />
+                <label asp-for="SearchModel.BaseNo" class="control-label"></label>
+                <input asp-for="SearchModel.BaseNo" class="form-control" />
             </div>
             <div class="form-group">
-                <label asp-for="MVModel.SearchModel.HolderName" class="control-label"></label>
-                <input asp-for="MVModel.SearchModel.HolderName" class="form-control" />
+                <label asp-for="SearchModel.HolderName" class="control-label"></label>
+                <input asp-for="SearchModel.HolderName" class="form-control" />
             </div>
             <div class="form-group">
                 <input type="submit" value="Ara" class="btn btn-primary" />
@@ -44,25 +44,19 @@
                 </tr>
             </thead>
             <tbody>
-                @if (Model.MVModel.SearchResults != null)
+                @if (Model.SearchResults != null)
                 {
-                    foreach (var item in Model.MVModel.SearchResults)
+                    foreach (var item in Model.SearchResults)
                     {
                         <tr>
                             <td>
-                                <form method="get" asp-page="MadridDetail" asp-route-IntRegNo="@item.RegNo">
-                                    <input type="hidden" name="IntRegNo" value="@item.RegNo" />
+                                <form method="get" asp-page="MadridDetail" asp-route-RegistrationNo="@item.RegistrationNo">
+                                    <input type="hidden" name="RegistrationNo" value="@item.RegistrationNo" />
                                     <button type="submit" class="brand-link-button">@item.Brand</button>
                                 </form>
                             </td>
                             <td><img src="@item.ImageUrl" alt="Image" width="50" height="50" /></td>
                             <td>@item.Status</td>
-                            <td>@item.Origin</td>
-                            <td>@item.Holder</td>
-                            <td>@item.RegNo</td>
-                            <td>@item.RegDate</td>
-                            <td>@item.NiceCI</td>
-                            <td>@item.ViennaCI</td>
                         </tr>
                     }
                 }

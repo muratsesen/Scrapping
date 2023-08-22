@@ -13,7 +13,11 @@ namespace Web.Pages
     public class MadridModel : PageModel
     {
         [BindProperty]
-        public MadridViewModel MVModel { get; set; }
+        public MadridSearchModel SearchModel { get; set; }
+
+        [BindProperty]
+        public IEnumerable<SearchResultDetail>? SearchResults { get; set; }
+
 
         private IMadridService service;
 
@@ -24,19 +28,17 @@ namespace Web.Pages
 
         public void OnGet()
         {
-            MVModel = new MadridViewModel();
-            MVModel.SearchModel = new MadridSearchModel();
+            SearchModel = new MadridSearchModel();
         }
 
         public void OnPost()
         {
-            Console.WriteLine("reg no" + MVModel.SearchModel.IntRegNo);
-            var jsonResponse = service.GetList(MVModel.SearchModel);
+            var jsonResponse = service.GetList(SearchModel);
 
             if (jsonResponse == null) return;
 
-            var searchResultList = JsonSerializer.Deserialize<IEnumerable<Core.Models.SearchResultItem>>(jsonResponse);
-            MVModel.SearchResults = searchResultList;
+            var searchResultList = JsonSerializer.Deserialize<IEnumerable<Core.Models.SearchResultDetail>>(jsonResponse);
+            SearchResults = searchResultList;
         }
 
 
