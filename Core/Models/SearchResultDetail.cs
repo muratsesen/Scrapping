@@ -35,8 +35,10 @@ public class SearchResultDetail
     [JsonPropertyName("basicApplication")]
     public string BasicApplication { get; set; } = "";
     //Designations
-    [JsonPropertyName("designations")]
-    public string Designations { get; set; } = "";
+    [JsonPropertyName("designations832")]
+    public IList<string>? Designations832 { get; set; }
+    [JsonPropertyName("designations834")]
+    public IList<string>? Designations834 { get; set; }
 
 }
 public class Holder

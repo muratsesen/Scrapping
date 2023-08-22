@@ -236,7 +236,7 @@ public class MadridService : IMadridService
         var pDivs = descriptionDiv.FindElements(By.CssSelector("div.p"));
 
         //151,540,180 yukarda alınıyor.
-        var requestedCodes = new string[] { "732", "740", "511", "832" };
+        var requestedCodes = new string[] { "732", "740", "511", "821", "832", "834" };
         var filteredDivs = pDivs.Where(pDiv =>
         {
             var inidCode = "";
@@ -310,7 +310,40 @@ public class MadridService : IMadridService
                 }
                 searchResultItem.GoodsAndServices = goodsAndServices;
             }
+            else if (inidCode == "821")
+            {
+                IWebElement divElement = pDiv.FindElement(By.CssSelector("div.text"));
 
+                // Extract and print the desired text
+                string extractedText = divElement.Text;
+                searchResultItem.BasicApplication = extractedText.Replace("\"", "");
+            }
+            else if (inidCode == "832")
+            {
+                IWebElement divElement = pDiv.FindElement(By.CssSelector("div.text.designations"));
+
+                var spanElements = divElement.FindElements(By.TagName("span"));
+
+                searchResultItem.Designations832 = new List<string>();
+                foreach (var spanElement in spanElements)
+                {
+                    string text = spanElement.Text;
+                    searchResultItem.Designations832.Add(text);
+                }
+            }
+            else if (inidCode == "834")
+            {
+                IWebElement divElement = pDiv.FindElement(By.CssSelector("div.text.designations"));
+
+                var spanElements = divElement.FindElements(By.TagName("span"));
+
+                searchResultItem.Designations834 = new List<string>();
+                foreach (var spanElement in spanElements)
+                {
+                    string text = spanElement.Text;
+                    searchResultItem.Designations834.Add(text);
+                }
+            }
         }
 
         return searchResultItem;

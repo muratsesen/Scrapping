@@ -6,19 +6,47 @@
 
 <div>
     <h2>Marka: @Model.SearchResultDetail.Brand</h2>
+
     <img src="@Model.SearchResultDetail.ImageUrl" alt="image" />
+    <p>Koruma Bitiş Tarihi (180): @Model.SearchResultDetail.RegistrationEndDate</p>
+    <p>Tescil Tarihi (151): @Model.SearchResultDetail.RegistrationDate</p>
     <p>Durumu: @Model.SearchResultDetail.Status</p>
     <p>Kayıt Numarası: @Model.SearchResultDetail.RegistrationNo</p>
-    <p>Kayıt Tarihi: @Model.SearchResultDetail.RegistrationDate</p>
-    <p>Tescil Bitiş Tarihi: @Model.SearchResultDetail.RegistrationEndDate</p>
-    <h3>Holder Bilgileri</h3>
+    <h5>Holder (Başvuru sahibi) Bilgileri (732)</h5>
     <p>Adı: @Model.SearchResultDetail.Holder.Name</p>
-    <p>Addresi: @Model.SearchResultDetail.Holder.Address1, @Model.SearchResultDetail.Holder.Address2, @Model.SearchResultDetail.Holder.Address3</p>
-    <h3>Sınıf Kodu ve Eşya Listesi</h3>
-    @foreach (var item in Model.SearchResultDetail.GoodsAndServices)
+    <p>
+        Addresi: @Model.SearchResultDetail.Holder.Address1, @Model.SearchResultDetail.Holder.Address2,
+        @Model.SearchResultDetail.Holder.Address3
+    </p>
+
+    <h5>Sınıf Kodu ve Eşya Listesi</h5>
+    @if (Model.SearchResultDetail.GoodsAndServices != null)
     {
-        <span> @item.Code</span> <span>-  @item.Description</span>
+        @foreach (var item in Model.SearchResultDetail.GoodsAndServices)
+        {
+            <span> @item.Code</span> <span>- @item.Description</span>
+        }
     }
-    <p>Basic Application: @Model.SearchResultDetail.BasicApplication</p>
-    <p>Designations: @Model.SearchResultDetail.Designations</p>
+    <h5>Menşe Ofis Başvuru Numarası (821): @Model.SearchResultDetail.BasicApplication</h5>
+    <h5>Koruma Talep Edilen Ülkeler (832): </h5>
+    @if (Model.SearchResultDetail.Designations832 != null)
+    {
+
+        @foreach (var item in Model.SearchResultDetail.Designations832)
+        {
+            <span>@item</span>
+
+            <span>-</span>
+        }
+    }
+    <h5>Koruma Talep Edilen Ülkeler (834):</h5>
+    @if (Model.SearchResultDetail.Designations834 != null)
+    {
+        @foreach (var item in Model.SearchResultDetail.Designations834)
+        {
+            <span>@item</span>
+
+            <span>-</span>
+        }
+    }
 </div>
