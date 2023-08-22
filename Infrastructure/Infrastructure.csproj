@@ -9,11 +9,15 @@
     <PackageReference Include="Selenium.Firefox.WebDriver" Version="0.27.0" />
     <PackageReference Include="Selenium.WebDriver" Version="4.11.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="7.0.0" />
+    <PackageReference Include="Selenium.Support" Version="4.11.0" />
+    <PackageReference Include="SeleniumExtras.WaitHelpers" Version="1.0.2" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Core\Core.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Remove="Microsoft.Extensions.DependencyInjection" />
+    <None Remove="Selenium.Support" />
+    <None Remove="SeleniumExtras.WaitHelpers" />
   </ItemGroup>
 </Project>

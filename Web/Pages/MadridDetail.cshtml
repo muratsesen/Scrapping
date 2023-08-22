@@ -3,23 +3,21 @@
 @{
 }
 
-<h1>Search Result Detail</h1>
 
 <div>
-    <h2>Brand: @Model.SearchResultDetail.Brand</h2>
-    <p>Image URL: @Model.SearchResultDetail.ImageUrl</p>
-    <p>Status: @Model.SearchResultDetail.Status</p>
-    <p>Registration Number: @Model.SearchResultDetail.RegistrationNo</p>
-    <p>Registration Date: @Model.SearchResultDetail.RegistrationDate</p>
-    <p>Registration End Date: @Model.SearchResultDetail.RegistrationEndDate</p>
-    <h3>Holder Information</h3>
-    <p>Name: @Model.SearchResultDetail.Holder.Name</p>
-    <p>Address: @Model.SearchResultDetail.Holder.Address1, @Model.SearchResultDetail.Holder.Address2, @Model.SearchResultDetail.Holder.Address3</p>
-    <h3>Goods and Services</h3>
+    <h2>Marka: @Model.SearchResultDetail.Brand</h2>
+    <img src="@Model.SearchResultDetail.ImageUrl" alt="image" />
+    <p>Durumu: @Model.SearchResultDetail.Status</p>
+    <p>Kayıt Numarası: @Model.SearchResultDetail.RegistrationNo</p>
+    <p>Kayıt Tarihi: @Model.SearchResultDetail.RegistrationDate</p>
+    <p>Tescil Bitiş Tarihi: @Model.SearchResultDetail.RegistrationEndDate</p>
+    <h3>Holder Bilgileri</h3>
+    <p>Adı: @Model.SearchResultDetail.Holder.Name</p>
+    <p>Addresi: @Model.SearchResultDetail.Holder.Address1, @Model.SearchResultDetail.Holder.Address2, @Model.SearchResultDetail.Holder.Address3</p>
+    <h3>Sınıf Kodu ve Eşya Listesi</h3>
     @foreach (var item in Model.SearchResultDetail.GoodsAndServices)
     {
-        <p>Code: @item.Code</p>
-        <p>Description: @item.Description</p>
+        <span> @item.Code</span> <span>-  @item.Description</span>
     }
     <p>Basic Application: @Model.SearchResultDetail.BasicApplication</p>
     <p>Designations: @Model.SearchResultDetail.Designations</p>

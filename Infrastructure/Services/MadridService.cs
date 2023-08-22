@@ -4,11 +4,17 @@ using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Firefox;
 using System.Text.Json;
 using Core.Models;
+using OpenQA.Selenium.Support.UI;
+using OpenQA.Selenium.Remote;
+using SeleniumExtras.WaitHelpers;
 
 namespace Infrastructure.Services;
 public class MadridService : IMadridService
 {
     private readonly IWebDriver driver;
+
+    public object ExpectedConditions { get; private set; }
+
     public MadridService(IWebDriver _driver)
     {
         driver = _driver;
@@ -33,10 +39,25 @@ public class MadridService : IMadridService
 
     public string ScrapeList(MadridSearchModel model)
     {
+        driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(10);
+
         driver.Navigate().GoToUrl("https://www3.wipo.int/madrid/monitor/en/");
+        // Wait for the page to load
+        //WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(10));
 
-        driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromMilliseconds(500);
+        //// Define the condition to wait for (e.g., an element that appears when the page is loaded)
+        //By condition = By.Id("some-element-id"); // Replace with the actual element ID or another suitable condition
 
+        //// Wait until the condition is met
+        //wait.Until(ExpectedConditions.Element(condition));
+
+        //driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromMilliseconds(500);
+
+
+        //-----
+        //WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(20));
+        //wait.PollingInterval = TimeSpan.FromMilliseconds(200); wait.Until(ExpectedConditions.ElementIsVisible(By.Id("my-element']"))).Click();
+        //------
         var advanceSearchButton = driver.FindElement(By.Id("advancedModeLink"));
         advanceSearchButton.Click();
 
@@ -135,6 +156,22 @@ public class MadridService : IMadridService
         IWebElement irnElement = null;
 
         try { brandElement = row.FindElement(By.CssSelector("[aria-describedby='gridForsearch_pane_BRAND']")); } catch (NoSuchElementException) { }
+        string status = "Active";
+        try
+        {
+            statusDiv = row.FindElement(By.CssSelector("[aria-describedby='gridForsearch_pane_STATUS']"));
+            IWebElement statusElement = statusDiv.FindElement(By.CssSelector(".status_icon div"));
+
+            // Get the text content of the element
+            string statusText = statusElement.Text;
+
+            // Check if the text contains "Inactive"
+            if (statusText.Contains("Inactive"))
+            {
+                status = "Inactive";
+            }
+        }
+        catch (NoSuchElementException) { }
 
         try
         {
@@ -146,21 +183,17 @@ public class MadridService : IMadridService
         {
             System.Console.WriteLine("Eleman bulunamadı");
         }
-        try { holderElement = row.FindElement(By.CssSelector("[aria-describedby='gridForsearch_pane_HOL']")); } catch (NoSuchElementException) { }
         try { irnElement = row.FindElement(By.CssSelector("[aria-describedby='gridForsearch_pane_IRN']")); } catch (NoSuchElementException) { }
 
         string brand = brandElement != null ? brandElement.Text : "";
         string imageUrl = srcAttributeValue;
-        string status = statusDiv != null ? statusDiv.Text : "";//TODO null geliyor
-        string holder = holderElement != null ? holderElement.Text : "";//TODO
         string irn = irnElement != null ? irnElement.Text : "";
 
         SearchResultDetail searchResultItem = new SearchResultDetail()
         {
-            Brand = brand,
-            ImageUrl = imageUrl,
+            Brand = brandElement != null ? brandElement.Text : "",
+            ImageUrl = srcAttributeValue,
             Status = status,
-            // Holder = holder,
             RegistrationNo = irn
         };
 
