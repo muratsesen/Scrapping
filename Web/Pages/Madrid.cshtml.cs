@@ -31,14 +31,26 @@ namespace Web.Pages
             SearchModel = new MadridSearchModel();
         }
 
-        public void OnPost()
+        public IActionResult OnPost()
         {
-            var jsonResponse = service.GetList(SearchModel);
+            var (searchResultList, isSingleItem) = service.GetList(SearchModel);
 
-            if (jsonResponse == null) return;
+            if (searchResultList == null)
+            {
+                // Handle the case where searchResultList is null
+                return Page();
+            }
 
-            var searchResultList = JsonSerializer.Deserialize<IEnumerable<Core.Models.SearchResultDetail>>(jsonResponse);
+            if (isSingleItem)
+            {
+                var serializedList = JsonSerializer.Serialize(searchResultList.ToList());
+                TempData["SearchResultList"] = serializedList;
+                return RedirectToPage("MadridDetail");
+            }
+
             SearchResults = searchResultList;
+
+            return Page();
         }
 
 

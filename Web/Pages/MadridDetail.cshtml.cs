@@ -14,6 +14,7 @@ namespace Web.Pages
         public string RegistrationNo { get; set; }
         public string BaseNo { get; set; }
         public string HolderName { get; set; }
+
         [BindProperty]
         public SearchResultDetail SearchResultDetail { get; set; }
 
@@ -24,16 +25,30 @@ namespace Web.Pages
             this.service = service;
         }
 
+        public IActionResult OnGet()
+        {
+            var serializedList = TempData["SearchResultList"] as string;
+            var searchResultList = JsonSerializer.Deserialize<List<Core.Models.SearchResultDetail>>(serializedList);
 
-        public void OnGet(string registrationNo)
+            if (searchResultList == null || searchResultList.Count == 0) return Page();
+
+            SearchResultDetail = searchResultList.FirstOrDefault();
+
+            return Page();
+
+        }
+
+        public IActionResult OnPost(string registrationNo)
         {
             RegistrationNo = registrationNo;
-            var jsonResponse = service.GetList(new MadridSearchModel { RegistrationNo = registrationNo });
+            var (searchResultList, isSingleItem) = service.GetList(new MadridSearchModel { RegistrationNo = registrationNo });
 
-            if (jsonResponse == null) return;
+            if (searchResultList == null) Page();
 
-            var searchResultList = JsonSerializer.Deserialize<IEnumerable<Core.Models.SearchResultDetail>>(jsonResponse);
-            SearchResultDetail = searchResultList?.FirstOrDefault();
+            SearchResultDetail = searchResultList.FirstOrDefault();
+
+            return Page();
+
         }
     }
 }

@@ -1,5 +1,4 @@
 public interface IMadridService
 {
-    string GetList(MadridSearchModel model);
-    string GetDetail(MadridSearchModel model);
+    (IEnumerable<Core.Models.SearchResultDetail> list, bool singleItem) GetList(MadridSearchModel model);
 }

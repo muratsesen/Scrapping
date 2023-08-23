@@ -20,25 +20,10 @@ public class MadridService : IMadridService
         driver = _driver;
     }
 
-    public string GetList(MadridSearchModel model)
+    public (IEnumerable<Core.Models.SearchResultDetail>? list, bool singleItem) GetList(MadridSearchModel model)
     {
 
-        var result = ScrapeList(model);
 
-        return result;
-    }
-    public string GetDetail(MadridSearchModel model)
-    {
-        var madridResult = ScrapeDetail(model);
-        return madridResult;
-    }
-    public static string ScrapeDetail(MadridSearchModel model)
-    {
-        return "";
-    }
-
-    public string ScrapeList(MadridSearchModel model)
-    {
         driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(10);
 
         driver.Navigate().GoToUrl("https://www3.wipo.int/madrid/monitor/en/");
@@ -84,32 +69,30 @@ public class MadridService : IMadridService
         return ProcessResult();
     }
 
-    public string ProcessResult()
+    public (IEnumerable<Core.Models.SearchResultDetail>? list, bool singleItem) ProcessResult()
     {
         IWebElement pageCountElement = driver.FindElement(By.ClassName("pageCount"));
 
         string pageCountText = pageCountElement.Text;
 
         if (string.IsNullOrEmpty(pageCountText))
-            return "";
+            return (null, false); // No data
 
         var pageCount = ExtractNumber(pageCountText);
 
-        if (pageCount == -1) return "";
+        if (pageCount == -1) return (null, false); // No data
 
         if (pageCount == 1)
         {
             var rowCount = RowCount();//tek satır olsa da iki geliyor çünkü görünmeyen bir satır var
-            if (rowCount == 0) return "";
+            if (rowCount == 0) return (null, false); // No data
 
             if (rowCount == 2)
             {
                 //Tek satır veri var. Detayını dönebilir
                 SearchResultDetail detail = ProcessPageWithDetail();
 
-                SearchResultDetail[] searchResultDetails = new SearchResultDetail[] { detail };
-                var serializedResult = JsonSerializer.Serialize(searchResultDetails);
-                return serializedResult;
+                return (new List<SearchResultDetail> { detail }, true);
             }
         }
 
@@ -130,7 +113,7 @@ public class MadridService : IMadridService
             }
             catch { continue; }
         }
-        return JsonSerializer.Serialize(searchResultItems);
+        return (searchResultItems, false);
     }
     public int RowCount()
     {

@@ -50,7 +50,7 @@
                     {
                         <tr>
                             <td>
-                                <form method="get" asp-page="MadridDetail" asp-route-RegistrationNo="@item.RegistrationNo">
+                                <form method="post" asp-page="MadridDetail" asp-route-RegistrationNo="@item.RegistrationNo">
                                     <input type="hidden" name="RegistrationNo" value="@item.RegistrationNo" />
                                     <button type="submit" class="brand-link-button">@item.Brand</button>
                                 </form>

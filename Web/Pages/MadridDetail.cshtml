@@ -4,49 +4,76 @@
 }
 
 
-<div>
+<div class="container">
     <h2>Marka: @Model.SearchResultDetail.Brand</h2>
+    <img src="@Model.SearchResultDetail.ImageUrl" alt="image" class="img-fluid mb-3" />
 
-    <img src="@Model.SearchResultDetail.ImageUrl" alt="image" />
-    <p>Koruma Bitiş Tarihi (180): @Model.SearchResultDetail.RegistrationEndDate</p>
-    <p>Tescil Tarihi (151): @Model.SearchResultDetail.RegistrationDate</p>
-    <p>Durumu: @Model.SearchResultDetail.Status</p>
-    <p>Kayıt Numarası: @Model.SearchResultDetail.RegistrationNo</p>
+    <table class="table table-bordered">
+        <tbody>
+            <tr>
+                <th scope="row">Koruma Bitiş Tarihi (180)</th>
+                <td>@Model.SearchResultDetail.RegistrationEndDate</td>
+            </tr>
+            <tr>
+                <th scope="row">Tescil Tarihi (151)</th>
+                <td>@Model.SearchResultDetail.RegistrationDate</td>
+            </tr>
+            <tr>
+                <th scope="row">Durumu</th>
+                <td>@Model.SearchResultDetail.Status</td>
+            </tr>
+            <tr>
+                <th scope="row">Kayıt Numarası</th>
+                <td>@Model.SearchResultDetail.RegistrationNo</td>
+            </tr>
+        </tbody>
+    </table>
+
     <h5>Holder (Başvuru sahibi) Bilgileri (732)</h5>
     <p>Adı: @Model.SearchResultDetail.Holder.Name</p>
     <p>
-        Addresi: @Model.SearchResultDetail.Holder.Address1, @Model.SearchResultDetail.Holder.Address2,
+        Addresi:
+        @Model.SearchResultDetail.Holder.Address1,
+        @Model.SearchResultDetail.Holder.Address2,
         @Model.SearchResultDetail.Holder.Address3
     </p>
 
     <h5>Sınıf Kodu ve Eşya Listesi</h5>
-    @if (Model.SearchResultDetail.GoodsAndServices != null)
-    {
-        @foreach (var item in Model.SearchResultDetail.GoodsAndServices)
-        {
-            <span> @item.Code</span> <span>- @item.Description</span>
-        }
-    }
+    <table class="table">
+        <tbody>
+            @if (Model.SearchResultDetail.GoodsAndServices != null)
+            {
+                @foreach (var item in Model.SearchResultDetail.GoodsAndServices)
+                {
+                    <tr>
+                        <td>@item.Code</td>
+                        <td>@item.Description</td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+
     <h5>Menşe Ofis Başvuru Numarası (821): @Model.SearchResultDetail.BasicApplication</h5>
     <h5>Koruma Talep Edilen Ülkeler (832): </h5>
-    @if (Model.SearchResultDetail.Designations832 != null)
-    {
-
-        @foreach (var item in Model.SearchResultDetail.Designations832)
+    <ul>
+        @if (Model.SearchResultDetail.Designations832 != null)
         {
-            <span>@item</span>
-
-            <span>-</span>
+            @foreach (var item in Model.SearchResultDetail.Designations832)
+            {
+                <li>@item</li>
+            }
         }
-    }
+    </ul>
+
     <h5>Koruma Talep Edilen Ülkeler (834):</h5>
-    @if (Model.SearchResultDetail.Designations834 != null)
-    {
-        @foreach (var item in Model.SearchResultDetail.Designations834)
+    <ul>
+        @if (Model.SearchResultDetail.Designations834 != null)
         {
-            <span>@item</span>
-
-            <span>-</span>
+            @foreach (var item in Model.SearchResultDetail.Designations834)
+            {
+                <li>@item</li>
+            }
         }
-    }
+    </ul>
 </div>
