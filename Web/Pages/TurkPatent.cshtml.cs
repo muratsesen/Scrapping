@@ -18,31 +18,41 @@ namespace Web.Pages
         [BindProperty]
         public TPSearchInBrandsModel BrandSearchModel { get; set; }
 
+        public TPBrandData BrandData { get; set; }
+        public List<TPGoodsAndService> GoodsAndServices { get; set; }
+
         private ITurkPatentService service;
 
         public TurkPatentModel(ITurkPatentService service)
         {
             this.service = service;
+            SearchFilesModel = new TPSearchInFilesModel();
+            SearchFilesModel.ApplicantInfo = "";
+            SearchFilesModel.ApplicationNumber = "";
+            SearchFilesModel.BulletinNumber = "";
+            SearchFilesModel.RegistrationNumber = "";
+
         }
 
         public void OnGet()
         {
         }
+
         public IActionResult OnPostFiles()
         {
-            // Handle form submission for Search Files
-            // Access data using SearchFilesModel
             var items = SearchFilesModel;
-            return Page(); // Return Page to stay on the same page
+
+            var resultModel = service.GetDetail(SearchFilesModel);
+            BrandData = resultModel.BrandData;
+            GoodsAndServices = resultModel.GoodsAndServices;
+            return Page(); 
         }
 
         public IActionResult OnPostBrand()
         {
-            // Handle form submission for Brand Search
-            // Access data using BrandSearchModel
             var items = BrandSearchModel;
             service.GetList(BrandSearchModel);
-            return Page(); // Return Page to stay on the same page
+            return Page();
         }
 
     }

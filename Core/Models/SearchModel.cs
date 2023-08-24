@@ -9,13 +9,13 @@ public class MadridSearchModel
 public class TPSearchInFilesModel
 {
     [Display(Name = "Başvuru Numarası")]
-    public string ApplicationNumber { get; set; }
+    public string ApplicationNumber { get; set; } = "2023/023132";
     [Display(Name = "Evrak Numarası")]
-    public string RegistrationNumber { get; set; }
+    public string RegistrationNumber { get; set; } = "";
     [Display(Name = "Tescil Numarası")]
-    public string ApplicantInfo { get; set; }
+    public string ApplicantInfo { get; set; } = "";
     [Display(Name = "Uluslararası Tescil Numarası")]
-    public string BulletinNumber { get; set; }
+    public string BulletinNumber { get; set; } = "";
 }
 public class TPSearchInBrandsModel
 {

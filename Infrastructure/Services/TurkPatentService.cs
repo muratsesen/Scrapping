@@ -8,6 +8,7 @@ using Core.Models;
 namespace Infrastructure.Services;
 public class TurkPatentService : ITurkPatentService
 {
+    private string url = "https://www.turkpatent.gov.tr/arastirma-yap?form=trademark";
     private IWebDriver driver;
     public TurkPatentService(IWebDriver driver)
     {
@@ -16,203 +17,352 @@ public class TurkPatentService : ITurkPatentService
 
     public string GetList(TPSearchInBrandsModel brandModel)
     {
-        var result = Scrape(brandModel);
 
-        return result;
+        return "";
     }
-    public string Scrape(TPSearchInBrandsModel brandModel)
+
+    public TPFileSearchResultModel GetDetail(TPSearchInFilesModel model)
     {
+        driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(10);
 
-        driver.Navigate().GoToUrl("https://www.turkpatent.gov.tr/arastirma-yap?form=trademark");
+        driver.Navigate().GoToUrl(url);
 
-        driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromMilliseconds(500);
+        var tabButtons = driver.FindElements(By.CssSelector("button.MuiButtonBase-root.MuiTab-root.MuiTab-textColorInherit.jss32"));
 
-        var searchButton = driver.FindElement(By.CssSelector(".MuiButtonBase-root.MuiButton-root.MuiButton-contained.MuiButton-containedSecondary"));
+        var buttonFileSearch = tabButtons[1];
 
+        buttonFileSearch.Click();
 
-        var applicationOwner = driver.FindElement(By.CssSelector("input[placeholder='Başvuru Sahibi']"));
+        //find input fields with class names MuiInputBase-input MuiInput-input
+        var inputElements = driver.FindElements(By.CssSelector("input.MuiInputBase-input.MuiInput-input"));
 
-        applicationOwner.SendKeys(brandModel.ApplicationOwner);
+        //fill input fields
+        if (model.ApplicationNumber != null) inputElements[0].SendKeys(model.ApplicationNumber);
+        if (model.RegistrationNumber != null) inputElements[1].SendKeys(model.RegistrationNumber);
+        if (model.ApplicantInfo != null) inputElements[2].SendKeys(model.ApplicantInfo);
+        if (model.BulletinNumber != null) inputElements[3].SendKeys(model.BulletinNumber);
+
+        //find search button
+        var searchButton = driver.FindElement(By.CssSelector("button.MuiButtonBase-root.MuiButton-root.MuiButton-contained.MuiButton-containedSecondary"));
 
         searchButton.Click();
 
-        // if (!string.IsNullOrEmpty(IRNo))
-        // {
-        //     intRegistrationInput.SendKeys(IRNo);
-        //     intRegistrationInput.SendKeys(Keys.Enter);
 
-        //     return MultipleRow(driver);
-        // }
-        // else if (!string.IsNullOrEmpty(basicNo))
-        // {
-        //     basicNoInput.SendKeys(basicNo);
-        //     basicNoInput.SendKeys(Keys.Enter);
+        var fieldsets = GetFieldsets();
 
-        //     return MultipleRow(driver);
-        // }
-        // else if (!string.IsNullOrEmpty(_holder))
-        // {
-        //     holderInput.SendKeys(_holder);
-        //     holderInput.SendKeys(Keys.Enter);
+        IWebElement brandInfoElement = null;
+        IWebElement goodsElemets = null;
 
-        //     return MultipleRow(driver);
-        // }
-
-        return "{\"response\": \"No data found\"}";
-
-    }
-    public string MultipleRow(IWebDriver driver)
-    {
-        IWebElement pageCountElement = driver.FindElement(By.ClassName("pageCount"));
-
-        string pageCountText = pageCountElement.Text;
-
-        if (string.IsNullOrEmpty(pageCountText))
-            return "";
-        var pageCount = ExtractNumber(pageCountText);
-        if (pageCount == -1) return "";
-
-        List<SearchResultItem> searchResultItems = new List<SearchResultItem>();
-        for (int i = 1; i <= pageCount; i++)
+        if (fieldsets.Count >= 2)
         {
-            //TODO out
-            var pageData = ProcessPage(driver);
+            // Assign the first fieldset to brandInfoElement
+            brandInfoElement = fieldsets.First();
 
-            searchResultItems.AddRange(pageData);
-
-            try
-            {
-                IWebElement nextPageButton = driver.FindElement(By.CssSelector("a.hasTip.ui-button[aria-label='next page']"));
-
-                nextPageButton.Click();
-            }
-            catch { continue; }
+            // Assign the second fieldset to goodsElemets
+            goodsElemets = fieldsets.ElementAt(1);
         }
-        return JsonSerializer.Serialize(searchResultItems);
-    }
-    public List<SearchResultItem> ProcessPage(IWebDriver driver)
-    {
-        List<SearchResultItem> searchResultItems = new List<SearchResultItem>();
 
-        IWebElement table = driver.FindElement(By.Id("gridForsearch_pane"));
-        IWebElement tableBody = table.FindElement(By.TagName("tbody"));
-        IList<IWebElement> rows = tableBody.FindElements(By.TagName("tr"));
+        #region Brand Info
+        //Marka logo
+        var logoUrl = GetImage(brandInfoElement);
 
+        //Diğer dataları tbody içinden çekeceğiz
+        var brandInfoTableRows = GetTableRowsInFieldset(brandInfoElement);
 
-        for (int i = 1; i < rows.Count; i++)
+        (string, string) tupleApplcaitonNoAndDate = ApplicaitonNoAndDate(brandInfoTableRows.First());
+        (string, string) registrationNoAndDate = GetRegistrationNoDate(brandInfoTableRows.ElementAt(1));
+        (string, string) verdictAndReason = GetVerdictAndReason(brandInfoTableRows.ElementAt(11));
+
+        TPBrandData brandData = new TPBrandData
         {
-            IWebElement row = rows[i];
+            LogoUrl = GetImage(brandInfoElement),
+            ApplicationNo = tupleApplcaitonNoAndDate.Item1,
+            ApplicationDate = tupleApplcaitonNoAndDate.Item2,
+            RegistrationNo = registrationNoAndDate.Item1,
+            RegistrationDate = registrationNoAndDate.Item2,
+            InternationalRegistrationNo = GetInternationalRegistrationNo(brandInfoTableRows.ElementAt(2)),
+            PublicationDate = GetPublicationDate(brandInfoTableRows.ElementAt(3)),
+            PublicationNo = GetPublicationNo(brandInfoTableRows.ElementAt(4)),
+            State = GetState(brandInfoTableRows.ElementAt(5)),
+            RucHan = GetRuchan(brandInfoTableRows.ElementAt(6)),
+            NiceClasses = GetNiceClasses(brandInfoTableRows.ElementAt(7)),
+            Type = GetType(brandInfoTableRows.ElementAt(7)),
+            BrandName = GetBrandName(brandInfoTableRows.ElementAt(8)),
+            Owner = GetOwnerInfo(brandInfoTableRows.ElementAt(10)),
+            Verdict = verdictAndReason.Item1,
+            VerdictReason = verdictAndReason.Item2
+        };
 
-            IWebElement brandElement = null;
-            string srcAttributeValue = "";
-            IWebElement statusDiv = null;
-            IWebElement originElement = null;
-            IWebElement holderElement = null;
-            IWebElement irnElement = null;
-            IWebElement rdElement = null;
-            IWebElement ncElement = null;
-            IWebElement vcsElement = null;
+        #endregion
 
-            try { brandElement = row.FindElement(By.CssSelector("[aria-describedby='gridForsearch_pane_BRAND']")); } catch (NoSuchElementException) { }
 
-            try
-            {
-                IWebElement imgTdElement = driver.FindElement(By.CssSelector("[aria-describedby='gridForsearch_pane_IMG']"));
-                IWebElement imgElement = imgTdElement.FindElement(By.TagName("img"));
-                srcAttributeValue = imgElement.GetAttribute("src");
-            }
-            catch (NoSuchElementException ex)
-            {
-                System.Console.WriteLine("Eleman bulunamadı");
-            }
+        #region Goods And Elements
 
-            try
-            {
-                IWebElement statusElement = row.FindElement(By.CssSelector("[aria-describedby='gridForsearch_pane_STATUS']"));
-                statusDiv = statusElement.FindElement(By.XPath(".//div[1]"));
-            }
-            catch (NoSuchElementException) { }
+        var goodsTableRows = GetTableRowsInFieldset(brandInfoElement);
 
-            try { originElement = row.FindElement(By.CssSelector("[aria-describedby='gridForsearch_pane_OO']")); } catch (NoSuchElementException) { }
-            try { holderElement = row.FindElement(By.CssSelector("[aria-describedby='gridForsearch_pane_HOL']")); } catch (NoSuchElementException) { }
-            try { irnElement = row.FindElement(By.CssSelector("[aria-describedby='gridForsearch_pane_IRN']")); } catch (NoSuchElementException) { }
-            try { rdElement = row.FindElement(By.CssSelector("[aria-describedby='gridForsearch_pane_RD']")); } catch (NoSuchElementException) { }
-            try { ncElement = row.FindElement(By.CssSelector("[aria-describedby='gridForsearch_pane_NC']")); } catch (NoSuchElementException) { }
-            try { vcsElement = row.FindElement(By.CssSelector("[aria-describedby='gridForsearch_pane_VCS']")); } catch (NoSuchElementException) { }
+        List<TPGoodsAndService> goodsAndServices = new List<TPGoodsAndService>();
 
-            // Extract the text content from the elements
-            string brand = brandElement != null ? brandElement.Text : "";
-            string imageUrl = srcAttributeValue;
-            string status = statusDiv != null ? statusDiv.Text : "";
-            string origin = originElement != null ? originElement.Text : "";
-            string holder = holderElement != null ? holderElement.Text : "";
-            string irn = irnElement != null ? irnElement.Text : "";
-            string rd = rdElement != null ? rdElement.Text : "";
-            string nc = ncElement != null ? ncElement.Text : "";
-            string vcs = vcsElement != null ? vcsElement.Text : "";
-
-            SearchResultItem searchResultItem = new SearchResultItem()
-            {
-                Brand = brand,
-                ImageUrl = imageUrl,
-                Status = status,
-                Origin = origin,
-                Holder = holder,
-                RegNo = irn,
-                RegDate = rd,
-                NiceCI = nc,
-                ViennaCI = vcs,
-            };
-
-            searchResultItems.Add(searchResultItem);
-        }
-        return searchResultItems;
-    }
-
-    int ExtractNumber(string input)
-    {
-        int startIndex = input.IndexOf('/') + 1;
-        int endIndex = input.Length;
-
-        if (startIndex >= 0 && startIndex < endIndex)
+        foreach (var row in goodsTableRows)
         {
-            string numberPart = input.Substring(startIndex, endIndex - startIndex);
-            if (int.TryParse(numberPart, out int result))
+            var tds = row.FindElements(By.TagName("td"));
+
+            if (tds.Count >= 2)
             {
-                return result;
+                var classCode = tds[0].Text.Trim();
+                var content = tds[1].Text.Trim();
+
+                goodsAndServices.Add(new TPGoodsAndService
+                {
+                    ClassCode = classCode,
+                    Content = content
+                });
             }
         }
 
-        return -1; // Return a default value if extraction fails
+        #endregion
+
+        TPFileSearchResultModel result = new TPFileSearchResultModel();
+        result.BrandData = brandData;
+        result.GoodsAndServices = goodsAndServices;
+        return result;
     }
 
-    public string GetDetail(TPSearchInBrandsModel model)
+
+    IReadOnlyCollection<IWebElement> GetFieldsets()
     {
-        throw new NotImplementedException();
+        try
+        {
+            return driver.FindElements(By.TagName("fieldset"));
+        }
+        catch (NoSuchElementException e)
+        {
+            Console.WriteLine("Element not found: " + e.Message);
+        }
+        return null;
     }
 
-    // SearchResultItem ProcessRow(IWebDriver driver, int pageCount, List<SearchResultItem> searchResultItems)
-    // {
-    //      if (pageCount == 1)
-    //     {
+    #region Brand Info Methods
+    string GetImage(IWebElement fieldsetElement)
+    {
+        try
+        {
+            // Locate the img element
+            IWebElement imgElement = fieldsetElement.FindElement(By.CssSelector("img"));
 
-    //         return ExtractDataFromRow(driver, searchResultItems);
-    //     }
-    //     IWebElement table = driver.FindElement(By.Id("gridForsearch_pane"));
-    //     IWebElement tableBody = table.FindElement(By.TagName("tbody"));
+            // Get the value of the src attribute
+            string srcAttributeValue = imgElement.GetAttribute("src");
 
-    //     IWebElement brandElement = tableBody.FindElement(By.CssSelector("[aria-describedby='gridForsearch_pane_BRAND']"));
+            return srcAttributeValue;
+        }
+        catch (NoSuchElementException e)
+        {
+            Console.WriteLine("Image element not found: " + e.Message);
+        }
+        return "";
+    }
 
-    //     IWebElement imgTdElement = driver.FindElement(By.CssSelector("[aria-describedby='gridForsearch_pane_IMG']"));
-    //     IWebElement imgElement = imgTdElement.FindElement(By.TagName("img"));
-    //     string srcAttributeValue = imgElement.GetAttribute("src");
+    IReadOnlyCollection<IWebElement> GetTableRowsInFieldset(IWebElement fieldsetElement)
+    {
+        try
+        {
+            var tbody = fieldsetElement.FindElement(By.CssSelector("tbody"));
+            var rows = tbody.FindElements(By.TagName("tr"));
 
-    //     IWebElement statusElement = tableBody.FindElement(By.CssSelector("[aria-describedby='gridForsearch_pane_STATUS']"));
-    //     IWebElement statusDiv = statusElement.FindElement(By.XPath(".//div[1]"));
+            return rows;
+        }
+        catch (NoSuchElementException e)
+        {
+            Console.WriteLine("TD element not found: " + e.Message);
+        }
+        return null;
+    }
+    (string, string) ApplicaitonNoAndDate(IWebElement element)
+    {
+        try
+        {
+            // Locate the specific td element
+            var tdElements = element.FindElements(By.TagName("td"));
 
-    //     IWebElement originElement = tableBody.FindElement(By.CssSelector("[aria-describedby='gridForsearch_pane_OO']"));
+            if (tdElements.Count >= 4)
+            {
+                return (tdElements.ElementAt(1).Text, tdElements.ElementAt(3).Text);
+            }
 
-    // }
+        }
+        catch (NoSuchElementException e)
+        {
+            Console.WriteLine("TD element not found: " + e.Message);
+        }
+        return ("", "");
+    }
+    (string, string) GetRegistrationNoDate(IWebElement element)
+    {
+        try
+        {
+            // Locate the specific td element
+            var tdElements = element.FindElements(By.TagName("td"));
 
+            if (tdElements.Count >= 4)
+            {
+                return (tdElements.ElementAt(1).Text, tdElements.ElementAt(3).Text);
+            }
 
+        }
+        catch (NoSuchElementException e)
+        {
+            Console.WriteLine("TD element not found: " + e.Message);
+        }
+        return ("", "");
+    }
+
+    string GetInternationalRegistrationNo(IWebElement element)
+    {
+        try
+        {
+            IWebElement tdElement = element.FindElement(By.CssSelector("tr > td:nth-child(2)"));
+            return tdElement.Text;
+        }
+        catch (NoSuchElementException e)
+        {
+            Console.WriteLine("TD element not found: " + e.Message);
+        }
+        return "";
+    }
+
+    string GetPublicationDate(IWebElement element)
+    {
+
+        try
+        {
+            IWebElement tdElement = element.FindElement(By.CssSelector("tr > td:nth-child(2)"));
+            return tdElement.Text;
+        }
+        catch (NoSuchElementException e)
+        {
+            Console.WriteLine("TD element not found: " + e.Message);
+        }
+        return "";
+    }
+
+    string GetPublicationNo(IWebElement element)
+    {
+
+        try
+        {
+            IWebElement tdElement = element.FindElement(By.CssSelector("tr > td:nth-child(2)"));
+            return tdElement.Text;
+        }
+        catch (NoSuchElementException e)
+        {
+            Console.WriteLine("TD element not found: " + e.Message);
+        }
+        return "";
+    }
+
+    string GetState(IWebElement element)
+    {
+
+        try
+        {
+            IWebElement tdElement = element.FindElement(By.CssSelector("tr > td:last-child"));
+            return tdElement.Text;
+        }
+        catch (NoSuchElementException e)
+        {
+            Console.WriteLine("TD element not found: " + e.Message);
+        }
+        return "";
+    }
+
+    string GetRuchan(IWebElement element)
+    {
+
+        try
+        {
+            IWebElement tdElement = element.FindElement(By.CssSelector("tr > td:last-child"));
+            return tdElement.Text;
+        }
+        catch (NoSuchElementException e)
+        {
+            Console.WriteLine("TD element not found: " + e.Message);
+        }
+        return "";
+    }
+
+    string GetNiceClasses(IWebElement element)
+    {
+
+        try
+        {
+            IWebElement tdElement = element.FindElement(By.CssSelector("tr > td:nth-child(2)"));
+            return tdElement.Text;
+        }
+        catch (NoSuchElementException e)
+        {
+            Console.WriteLine("TD element not found: " + e.Message);
+        }
+        return "";
+    }
+
+    string GetType(IWebElement element)
+    {
+
+        try
+        {
+            IWebElement tdElement = element.FindElement(By.CssSelector("tr > td:last-child"));
+            return tdElement.Text;
+        }
+        catch (NoSuchElementException e)
+        {
+            Console.WriteLine("TD element not found: " + e.Message);
+        }
+        return "";
+    }
+
+    string GetBrandName(IWebElement element)
+    {
+
+        try
+        {
+            IWebElement tdElement = element.FindElement(By.CssSelector("tr > td:nth-child(2)"));
+            return tdElement.Text;
+        }
+        catch (NoSuchElementException e)
+        {
+            Console.WriteLine("TD element not found: " + e.Message);
+        }
+        return "";
+    }
+
+    string GetOwnerInfo(IWebElement element)
+    {
+
+        try
+        {
+            IWebElement tdElement = element.FindElement(By.CssSelector("tr > td:last-child"));
+            return tdElement.Text;
+        }
+        catch (NoSuchElementException e)
+        {
+            Console.WriteLine("TD element not found: " + e.Message);
+        }
+        return "";
+    }
+
+    (string, string) GetVerdictAndReason(IWebElement element)
+    {
+        try
+        {
+            IWebElement tdElement1 = element.FindElement(By.CssSelector("tr > td:nth-child(2)"));
+            IWebElement tdElement2 = element.FindElement(By.CssSelector("tr > td:last-child"));
+            return (tdElement1.Text, tdElement2.Text);
+        }
+        catch (NoSuchElementException e)
+        {
+            Console.WriteLine("TD element not found: " + e.Message);
+        }
+        return ("", "");
+    }
+
+    #endregion
 }
