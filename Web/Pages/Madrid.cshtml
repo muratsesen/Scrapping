@@ -4,6 +4,48 @@
     ViewData["Title"] = "Madrid";
 }
 
+<style>
+    /* Define a fancy button style */
+    .fancy-button {
+        background-color: #4CAF50; /* Green background color */
+        border: none; /* Remove border */
+        color: white; /* Text color */
+        padding: 10px 20px; /* Padding around text */
+        text-align: center; /* Center text horizontally */
+        text-decoration: none; /* Remove underline on hover */
+        display: inline-block; /* Make the button inline-block */
+        font-size: 16px; /* Font size */
+        margin: 10px 5px; /* Margin around button */
+        cursor: pointer; /* Add pointer cursor on hover */
+        border-radius: 5px; /* Rounded corners */
+        box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2); /* Box shadow for depth */
+        transition: background-color 0.3s, transform 0.3s; /* Smooth transitions */
+    }
+
+        /* Add hover effect */
+        .fancy-button:hover {
+            background-color: #45a049; /* Darker green on hover */
+            transform: scale(1.05); /* Slight scale up on hover */
+        }
+    /* Define a button with label-like style */
+    .clickable-label-button {
+        background: none; /* Remove background color */
+        border: none; /* Remove border */
+        color: #0074d9; /* Text color, you can change this to your desired color */
+        padding: 0; /* Remove padding */
+        font-size: 16px; /* Font size */
+        cursor: pointer; /* Add pointer cursor on hover */
+        text-decoration: underline; /* Add underline on hover */
+        transition: color 0.3s, text-decoration 0.3s; /* Smooth transitions */
+    }
+
+        /* Add hover effect */
+        .clickable-label-button:hover {
+            color: #0056b3; /* Change text color on hover */
+            text-decoration: none; /* Remove underline on hover */
+        }
+</style>
+
 <div class="row">
     <div class="col-md-4">
         <form method="post">
@@ -33,14 +75,7 @@
             <thead>
                 <tr>
                     <th>Brand</th>
-                    <th>Image</th>
                     <th>Status</th>
-                    <th>Origin</th>
-                    <th>Holder</th>
-                    <th>Reg No</th>
-                    <th>Reg Date</th>
-                    <th>Nice CI</th>
-                    <th>Vienna CI</th>
                 </tr>
             </thead>
             <tbody>
@@ -52,10 +87,10 @@
                             <td>
                                 <form method="post" asp-page="MadridDetail" asp-route-RegistrationNo="@item.RegistrationNo">
                                     <input type="hidden" name="RegistrationNo" value="@item.RegistrationNo" />
-                                    <button type="submit" class="brand-link-button">@item.Brand</button>
+                                    <button type="submit" class="clickable-label-button">@item.Brand</button>
                                 </form>
                             </td>
-                            <td><img src="@item.ImageUrl" alt="Image" width="50" height="50" /></td>
+
                             <td>@item.Status</td>
                         </tr>
                     }
@@ -69,5 +104,24 @@
 
             </tbody>
         </table>
+
+        <!-- Pagination Controls -->
+        <div class="pagination">
+            <form method="post" id="pagination">
+                <input hidden asp-for="SearchModel.RegistrationNo" class="form-control" />
+                <input hidden asp-for="SearchModel.BaseNo" class="form-control" />
+                <input hidden asp-for="SearchModel.HolderName" class="form-control" />
+                <span> @Model.SearchModel.CurrentPage / @Model.SearchModel.TotalPages.</span>
+                <input asp-for="SearchModel.CurrentPage" type="number" id="pageInput" min="1" max="@Model.SearchModel.TotalPages" />
+                <button>Go</button>
+            </form>
+        </div>
     </div>
 </div>
+
+<script>document.getElementById("pageInput").addEventListener("keyup", function (event) {
+        if (event.key === "Enter") {
+            event.preventDefault(); // Prevent the default form submission
+            document.querySelector("form#pagination").submit(); // Submit the form
+        }
+    });</script>

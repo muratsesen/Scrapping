@@ -18,9 +18,9 @@ namespace Web.Pages
         [BindProperty]
         public SearchResultDetail SearchResultDetail { get; set; }
 
-        private IMadridService service;
+        private IWipoService service;
 
-        public MadridDetailModel(IMadridService service)
+        public MadridDetailModel(IWipoService service)
         {
             this.service = service;
         }
@@ -41,11 +41,11 @@ namespace Web.Pages
         public IActionResult OnPost(string registrationNo)
         {
             RegistrationNo = registrationNo;
-            var (searchResultList, isSingleItem) = service.GetList(new MadridSearchModel { RegistrationNo = registrationNo });
+            var (searchResultList, isSingleItem) = service.GetList(new WipoSearchModel { RegistrationNo = registrationNo });
 
             if (searchResultList == null) Page();
 
-            SearchResultDetail = searchResultList.FirstOrDefault();
+            SearchResultDetail = searchResultList.Details.FirstOrDefault();
 
             return Page();
 

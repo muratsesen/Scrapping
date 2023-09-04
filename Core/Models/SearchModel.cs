@@ -1,10 +1,12 @@
 using System.ComponentModel.DataAnnotations;
 
-public class MadridSearchModel
+public class WipoSearchModel
 {
     public string RegistrationNo { get; set; }//="1254874";
     public string BaseNo { get; set; }
     public string HolderName { get; set; }// = "beko";
+    public int CurrentPage { get; set; } = 1;
+    public int TotalPages { get; set; } = 0;
 }
 public class TPSearchInFilesModel
 {

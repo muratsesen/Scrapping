@@ -9,24 +9,31 @@ using OpenQA.Selenium.Remote;
 using SeleniumExtras.WaitHelpers;
 
 namespace Infrastructure.Services;
-public class MadridService : IMadridService
+public class WipoService : IWipoService
 {
     private readonly IWebDriver driver;
 
     public object ExpectedConditions { get; private set; }
 
-    public MadridService(IWebDriver _driver)
+    public WipoService(IWebDriver _driver)
     {
         driver = _driver;
     }
 
-    public (IEnumerable<Core.Models.SearchResultDetail>? list, bool singleItem) GetList(MadridSearchModel model)
+    public (WipoSearchResult, bool) GetList(WipoSearchModel model)
     {
 
-
         driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(10);
+        try
+        {
+            driver.Navigate().GoToUrl("https://www3.wipo.int/madrid/monitor/en/");
 
-        driver.Navigate().GoToUrl("https://www3.wipo.int/madrid/monitor/en/");
+        }
+        catch (Exception ex)
+        {
+            driver.Quit();
+            return (null, false);
+        }
         // Wait for the page to load
         //WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(10));
 
@@ -66,17 +73,25 @@ public class MadridService : IMadridService
         var searchButton = driver.FindElement(By.CssSelector("a.noPrint.searchButton.bigButton.ui-button.ui-widget.ui-state-default.ui-corner-all.ui-button-text-icon-secondary"));
         searchButton.Click();
 
-        return ProcessResult();
+        var result = ProcessResult(model.CurrentPage);
+        // driver.Close();
+
+        return result;
     }
 
-    public (IEnumerable<Core.Models.SearchResultDetail>? list, bool singleItem) ProcessResult()
+    public (WipoSearchResult, bool) ProcessResult(int page = 1)
     {
         IWebElement pageCountElement = driver.FindElement(By.ClassName("pageCount"));
 
         string pageCountText = pageCountElement.Text;
 
+        WipoSearchResult wipoSearchResult = new WipoSearchResult();
+        wipoSearchResult.TotalPages = 1;
+        wipoSearchResult.CurrentPage = page;
+        wipoSearchResult.Details = new List<SearchResultDetail>();
+
         if (string.IsNullOrEmpty(pageCountText))
-            return (null, false); // No data
+            return (wipoSearchResult, false); // No data
 
         var pageCount = ExtractNumber(pageCountText);
 
@@ -92,28 +107,53 @@ public class MadridService : IMadridService
                 //Tek satır veri var. Detayını dönebilir
                 SearchResultDetail detail = ProcessPageWithDetail();
 
-                return (new List<SearchResultDetail> { detail }, true);
+                wipoSearchResult.Details.Add(detail);
+
+                return (wipoSearchResult, true);
             }
         }
 
         //Buraya geldiyse birden çok satır var. Çok elemanlı liste dönecek.
-        List<SearchResultDetail> searchResultItems = new List<SearchResultDetail>();
-        for (int i = 1; i <= pageCount; i++)
+        wipoSearchResult.TotalPages = pageCount;
+
+        if (page == 1)
         {
-            //TODO out
+            //MEvcut sayfayı işle
             var pageData = ProcessPage();
 
-            searchResultItems.AddRange(pageData);
-
+            wipoSearchResult.Details.AddRange(pageData);
+        }
+        else if (page <= pageCount)
+        {
+            //istenen sayfaya git
             try
             {
-                IWebElement nextPageButton = driver.FindElement(By.CssSelector("a.hasTip.ui-button[aria-label='next page']"));
-
-                nextPageButton.Click();
+                IWebElement skipInput = driver.FindElement(By.CssSelector("input#skipValue0"));
+                skipInput.Clear();
+                skipInput.SendKeys(page.ToString());
+                skipInput.SendKeys(Keys.Enter);
             }
-            catch { continue; }
+            catch { }
+
+            //int loop = 1000;
+            //while (loop-- > 0)
+            //    try
+            //    {
+            //        IWebElement pagerPosElement = driver.FindElement(By.CssSelector("div.pagerPos"));
+            //        var pagerPosText = pagerPosElement.Text;
+            //        break;
+            //    }
+            //    catch (StaleElementReferenceException e)
+            //    {
+            //        Console.WriteLine(e.Message);
+            //    }
+            //TODO refactor
+            Thread.Sleep(5000);
+            var pageData = ProcessPage();
+
+            wipoSearchResult.Details.AddRange(pageData);
         }
-        return (searchResultItems, false);
+        return (wipoSearchResult, false);
     }
     public int RowCount()
     {
@@ -339,7 +379,9 @@ public class MadridService : IMadridService
         IWebElement tableBody = table.FindElement(By.TagName("tbody"));
         IList<IWebElement> rows = tableBody.FindElements(By.TagName("tr"));
 
-
+        var tableV = table.Text;
+        var tabletb = tableBody.Text;
+        var tabler = rows[1].Text;
         for (int i = 1; i < rows.Count; i++)
         {
             IWebElement row = rows[i];
@@ -354,18 +396,22 @@ public class MadridService : IMadridService
             IWebElement ncElement = null;
             IWebElement vcsElement = null;
 
-            try { brandElement = row.FindElement(By.CssSelector("[aria-describedby='gridForsearch_pane_BRAND']")); } catch (NoSuchElementException) { }
-
             try
             {
-                IWebElement imgTdElement = driver.FindElement(By.CssSelector("[aria-describedby='gridForsearch_pane_IMG']"));
-                IWebElement imgElement = imgTdElement.FindElement(By.TagName("img"));
-                srcAttributeValue = imgElement.GetAttribute("src");
+                brandElement = row.FindElement(By.CssSelector("[aria-describedby='gridForsearch_pane_BRAND']"));
             }
-            catch (NoSuchElementException ex)
-            {
-                System.Console.WriteLine("Eleman bulunamadı");
-            }
+            catch (NoSuchElementException) { }
+
+            //try
+            //{
+            //    IWebElement imgTdElement = driver.FindElement(By.CssSelector("[aria-describedby='gridForsearch_pane_IMG']"));
+            //    IWebElement imgElement = imgTdElement.FindElement(By.TagName("img"));
+            //    srcAttributeValue = imgElement.GetAttribute("src");
+            //}
+            //catch (NoSuchElementException ex)
+            //{
+            //    System.Console.WriteLine("Eleman bulunamadı");
+            //}
 
             try
             {
@@ -421,26 +467,5 @@ public class MadridService : IMadridService
         return -1; // Return a default value if extraction fails
     }
 
-    // SearchResultItem ProcessRow(IWebDriver driver, int pageCount, List<SearchResultItem> searchResultItems)
-    // {
-    //      if (pageCount == 1)
-    //     {
 
-    //         return ExtractDataFromRow(driver, searchResultItems);
-    //     }
-    //     IWebElement table = driver.FindElement(By.Id("gridForsearch_pane"));
-    //     IWebElement tableBody = table.FindElement(By.TagName("tbody"));
-
-    //     IWebElement brandElement = tableBody.FindElement(By.CssSelector("[aria-describedby='gridForsearch_pane_BRAND']"));
-
-    //     IWebElement imgTdElement = driver.FindElement(By.CssSelector("[aria-describedby='gridForsearch_pane_IMG']"));
-    //     IWebElement imgElement = imgTdElement.FindElement(By.TagName("img"));
-    //     string srcAttributeValue = imgElement.GetAttribute("src");
-
-    //     IWebElement statusElement = tableBody.FindElement(By.CssSelector("[aria-describedby='gridForsearch_pane_STATUS']"));
-    //     IWebElement statusDiv = statusElement.FindElement(By.XPath(".//div[1]"));
-
-    //     IWebElement originElement = tableBody.FindElement(By.CssSelector("[aria-describedby='gridForsearch_pane_OO']"));
-
-    // }
 }

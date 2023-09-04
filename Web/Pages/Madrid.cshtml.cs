@@ -13,42 +13,44 @@ namespace Web.Pages
     public class MadridModel : PageModel
     {
         [BindProperty]
-        public MadridSearchModel SearchModel { get; set; }
+        public WipoSearchModel SearchModel { get; set; }
 
         [BindProperty]
         public IEnumerable<SearchResultDetail>? SearchResults { get; set; }
 
 
-        private IMadridService service;
+        private IWipoService service;
 
-        public MadridModel(IMadridService service)
+        public MadridModel(IWipoService service)
         {
             this.service = service;
         }
 
         public void OnGet()
         {
-            SearchModel = new MadridSearchModel();
+            SearchModel = new WipoSearchModel();
         }
 
         public IActionResult OnPost()
         {
-            var (searchResultList, isSingleItem) = service.GetList(SearchModel);
+            var (searchResult, isSingleItem) = service.GetList(SearchModel);
 
-            if (searchResultList == null)
+            if (searchResult == null)
             {
-                // Handle the case where searchResultList is null
+                // Handle the case where searchResult is null
                 return Page();
             }
 
             if (isSingleItem)
             {
-                var serializedList = JsonSerializer.Serialize(searchResultList.ToList());
+                var serializedList = JsonSerializer.Serialize(searchResult.Details.ToList());
                 TempData["SearchResultList"] = serializedList;
                 return RedirectToPage("MadridDetail");
             }
 
-            SearchResults = searchResultList;
+            SearchResults = searchResult.Details;
+            SearchModel.TotalPages = searchResult.TotalPages;
+            SearchModel.CurrentPage = searchResult.CurrentPage;
 
             return Page();
         }

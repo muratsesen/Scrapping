@@ -1,7 +1,10 @@
 using System.Text.Json.Serialization;
 
 namespace Core.Models;
-
+public class WipoSearchResult : SearhBase
+{
+    public List<SearchResultDetail> Details { get; set; }
+}
 public class SearchResultDetail
 {
     //Brand

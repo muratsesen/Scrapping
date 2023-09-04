@@ -1,8 +1,8 @@
 namespace Core.Models;
 
 
-public class MadridViewModel
+public class WipoViewModel
 {
-    public MadridSearchModel SearchModel { get; set; }
+    public WipoSearchModel SearchModel { get; set; }
     public IEnumerable<SearchResultItem>? SearchResults { get; set; }
 }
