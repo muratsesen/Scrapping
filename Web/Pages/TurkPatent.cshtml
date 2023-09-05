@@ -22,21 +22,30 @@
     <div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="home-tab">
         <form method="post" asp-page-handler="Brand">
             <div class="form-group">
-                <label asp-for="BrandSearchModel.ApplicationOwner"></label>
+                <label asp-for="useId">User ID</label>
+                <select asp-for="useId" class="form-control">
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label asp-for="BrandSearchModel.ApplicationOwner">Application Owner</label>
                 <input asp-for="BrandSearchModel.ApplicationOwner" class="form-control" />
             </div>
             <div class="form-group">
-                <label asp-for="BrandSearchModel.BrandAdvertisementBulletinNumber"></label>
+                <label asp-for="BrandSearchModel.BrandAdvertisementBulletinNumber">Brand Advertisement Bulletin Number</label>
                 <input asp-for="BrandSearchModel.BrandAdvertisementBulletinNumber" class="form-control" />
             </div>
             <div class="form-group">
-                <label asp-for="BrandSearchModel.IndividualNumber"></label>
+                <label asp-for="BrandSearchModel.IndividualNumber">Individual Number</label>
                 <input asp-for="BrandSearchModel.IndividualNumber" class="form-control" />
             </div>
+
             <button type="submit" class="btn btn-primary">Sorgula</button>
         </form>
-
     </div>
+
     <div class="tab-pane fade" id="profile" role="tabpanel" aria-labelledby="profile-tab">
 
         <form method="post" asp-page-handler="Files">

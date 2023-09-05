@@ -19,5 +19,9 @@
     <None Remove="Microsoft.Extensions.DependencyInjection" />
     <None Remove="Selenium.Support" />
     <None Remove="SeleniumExtras.WaitHelpers" />
+    <None Remove="Services\Abstract\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Services\Abstract\" />
   </ItemGroup>
 </Project>

@@ -4,28 +4,140 @@ using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Firefox;
 using System.Text.Json;
 using Core.Models;
+using Infrastructure.Services.Abstract;
 
 namespace Infrastructure.Services;
 public class TurkPatentService : ITurkPatentService
 {
-    private string url = "https://www.turkpatent.gov.tr/arastirma-yap?form=trademark";
-    private IWebDriver driver;
-    public TurkPatentService(IWebDriver driver)
+    #region Properties
+    private string Url = "https://www.turkpatent.gov.tr/arastirma-yap?form=trademark";
+
+    public IWebDriver driver { get; set; }
+    public IDriverContainer driverContainer { get; set; }
+
+    public TurkPatentService(IDriverContainer container)
     {
-        this.driver = driver;
+        driverContainer = container;
     }
 
-    public string GetList(TPSearchInBrandsModel brandModel)
-    {
+    #endregion
 
-        return "";
+    public TPFileSearchResultModel Scrape(TPSearchModel model)
+    {
+        #region Setting Driver
+        var requestedDriver = driverContainer.GetDriver(model.UserId, Url);
+
+        if (requestedDriver == null)
+            return null;//"error";
+
+        this.driver = requestedDriver;
+
+        #endregion
+
+
+        #region Marka Araştırma mı Dosya Takibi mi
+
+        /*
+         * Marka araştırma mı dosya takibi mi?
+         * 
+         * Mark Araştırma ise yeni arama mı yoksa devam eden mi?
+         * 
+         * Dosya takibi hep yeni olacak.
+         */
+
+        //Dosya takibi
+        if (model.SearchType == TPSearchType.ChaseFile)
+        {
+            return GetDetail(model);
+        }
+
+        //Marka Araştırma 
+        return GetBrandList(model);
+        #endregion
+
     }
 
-    public TPFileSearchResultModel GetDetail(TPSearchInFilesModel model)
+    public TPFileSearchResultModel GetBrandList(TPSearchModel model)
     {
         driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(10);
 
-        driver.Navigate().GoToUrl(url);
+        #region Yeni arama mı devam eden mi
+        if (model.TotalPages > 0 && model.NextPage > model.CurrentPage)
+        {
+            //Devam Eden Arama
+
+            //* Sonraki sayfayı getir
+            if (model.NextPage > model.TotalPages) return null;
+
+            // Butonu bul:  button title = Next page aria-label=Sonraki
+            try
+            {
+                var nextPageButton = driver.FindElement(By.CssSelector("button[title='Next page']"));
+
+                nextPageButton.Click();
+            }
+            catch (NoSuchElementException ex)
+            {
+                // Belirtilen özelliklere sahip buton bulunamadığında hata ele alınır.
+                Console.WriteLine("Sonraki sayfa butonu bulunamadı." + ex.Message);
+                return null;//Hata dön
+            }
+
+            //3 saniye bekle
+            Thread.Sleep(3000);//TODO refactor
+
+            return ProcessTable();
+        }
+        else
+        {
+            //Inputları yaz
+            try
+            {
+                var tabButtons = driver.FindElements(By.CssSelector("button.MuiButtonBase-root.MuiTab-root.MuiTab-textColorInherit.jss32"));
+
+                var buttonBrandSearch = tabButtons[0];
+
+                buttonBrandSearch.Click();
+
+                //find input fields with class names MuiInputBase-input MuiInput-input
+                var inputElements = driver.FindElements(By.CssSelector("input.MuiInputBase-input.MuiInput-input"));
+
+                //fill input fields
+                if (model.ApplicationOwner != null) inputElements[1].SendKeys(model.ApplicationOwner);
+                if (model.BrandAdvertisementBulletinNumber != null) inputElements[2].SendKeys(model.BrandAdvertisementBulletinNumber);
+                if (model.IndividualNumber != null) inputElements[3].SendKeys(model.IndividualNumber);
+
+                //Sorgula butonunu bul
+                var searchButton = driver.FindElement(By.CssSelector("button.MuiButtonBase-root.MuiButton-root.MuiButton-contained.MuiButton-containedSecondary"));
+
+                searchButton.Click();
+            }
+            catch (NoSuchElementException ex)
+            {
+                Console.WriteLine("Yeni sorgu için inputları girerken hata." + ex.Message);
+            }
+
+            //Sayfayı getir
+            //3 saniye bekle
+            Thread.Sleep(3000);//TODO refactor
+
+            return ProcessTable();
+        }
+
+        #endregion
+
+    }
+
+
+    public TPFileSearchResultModel ProcessTable()
+    {
+        return null;
+    }
+    public TPFileSearchResultModel GetDetail(TPSearchModel model)
+    {
+        driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(10);
+
+        driver.Navigate().GoToUrl(Url);
 
         var tabButtons = driver.FindElements(By.CssSelector("button.MuiButtonBase-root.MuiTab-root.MuiTab-textColorInherit.jss32"));
 
