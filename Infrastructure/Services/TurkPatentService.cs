@@ -127,7 +127,6 @@ public class TurkPatentService : ITurkPatentService
         return result;
     }
 
-
     IReadOnlyCollection<IWebElement> GetFieldsets()
     {
         try
