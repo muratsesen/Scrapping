@@ -53,7 +53,7 @@ namespace Web.Pages
             model.ApplicantInfo = SearchFilesModel.ApplicantInfo;
             model.BulletinNumber = SearchFilesModel.BulletinNumber;
 
-            var resultModel = service.GetDetail(model);
+            var resultModel = service.ScrapeFileDetail(model);
 
             BrandData = resultModel.BrandData;
             GoodsAndServices = resultModel.GoodsAndServices;
@@ -65,55 +65,97 @@ namespace Web.Pages
             var items = BrandSearchModel;
             var searchModel = new TPSearchModel();
 
-            List<TPSearchModel> users = new List<TPSearchModel>
+            List<TPTestModel> test = new List<TPTestModel>
             {
-               new TPSearchModel
-               {
-                   UserId = "1",
-                   ApplicationOwner = "ülker",
-                   CurrentPage = 0,
-                   NextPage = 0,
-                   TotalPages = 0,
-                   SearchType = TPSearchType.SearchInBrands
-               },
-               new TPSearchModel{
-                   UserId = "1",
-                   ApplicationOwner = "ülker",
-                   CurrentPage = 1,
-                   NextPage = 2,
-                   TotalPages = 8,
-                   SearchType = TPSearchType.SearchInBrands
-               },
-                new TPSearchModel{
-                    UserId = "2",
-                   ApplicationOwner = "eti",
-                   CurrentPage = 0,
-                   NextPage = 0,
-                   TotalPages = 0,
-                   SearchType = TPSearchType.SearchInBrands
-               },
-               new TPSearchModel{
-                   UserId = "1",
-                   ApplicationOwner = "ülker",
-                   CurrentPage = 1,
-                   NextPage = 2,
-                   TotalPages = 8,
-                   SearchType = TPSearchType.SearchInBrands
-               },
-                 new TPSearchModel{
-                     UserId = "2",
-                   ApplicationOwner = "eti",
-                   CurrentPage = 1,
-                   NextPage = 2,
-                   TotalPages = 8,
-                   SearchType = TPSearchType.SearchInBrands
-               },
-
+                //Başarısız arama
+                new TPTestModel
+                {
+                    search =  new TPSearchModel
+                    {
+                        UserId = "1",
+                        ApplicationOwner = "ülkerrrrrr",
+                        CurrentPage = 0,
+                        NextPage = 0,
+                        TotalPages = 0,
+                        SearchType = TPSearchType.SearchInBrands
+                    },
+                    BrandResult = new TPBrandResultModel(),
+                    FileResult = new TPFileSearchResultModel()
+                },
+                //kullanıcı 1 başarılı arama
+                 new TPTestModel
+                 {
+                    search =  new TPSearchModel
+                    {
+                        UserId = "1",
+                        ApplicationOwner = "ülker",//yeni arama
+                        CurrentPage = 0,
+                        NextPage = 0,
+                        TotalPages = 0,
+                        SearchType = TPSearchType.SearchInBrands
+                    },
+                    BrandResult = new TPBrandResultModel(),
+                    FileResult = new TPFileSearchResultModel()
+                },
+                //kullanıcı 1 devam arama
+                 new TPTestModel
+                 {
+                    search =  new TPSearchModel
+                    {
+                        UserId = "1",
+                        ApplicationOwner = "ülker",//yeni arama
+                        CurrentPage = 1,
+                        NextPage = 2,
+                        TotalPages = 10,
+                        SearchType = TPSearchType.SearchInBrands
+                    },
+                    BrandResult = new TPBrandResultModel(),
+                    FileResult = new TPFileSearchResultModel()
+                },
+                //kullanıcı 2 başarılı arama
+                 new TPTestModel
+                 {
+                    search =  new TPSearchModel
+                    {
+                        UserId = "2",
+                        ApplicationOwner = "arçelik",
+                        CurrentPage = 0,
+                        NextPage = 0,
+                        TotalPages = 0,
+                        SearchType = TPSearchType.SearchInBrands
+                    },
+                    BrandResult = new TPBrandResultModel(),
+                    FileResult = new TPFileSearchResultModel()
+                },
+                //kullanıcı 2 devam arama
+                 new TPTestModel
+                 {
+                    search =  new TPSearchModel
+                    {
+                        UserId = "2",
+                        ApplicationOwner = "arçelik",
+                        CurrentPage = 1,
+                        NextPage = 2,
+                        TotalPages = 10,
+                        SearchType = TPSearchType.SearchInBrands
+                    },
+                    BrandResult = new TPBrandResultModel(),
+                    FileResult = new TPFileSearchResultModel()
+                }
             };
 
-            foreach (var item in users)
+            foreach (var item in test)
             {
-                var res = service.Scrape(item);
+                item.BrandResult = service.ScrapeBrandList(item.search);
+
+                if (item.BrandResult != null)
+                {
+
+                    item.FileResult = service.ScrapeFileDetail(new TPSearchModel
+                    {
+                        ApplicationNumber = item.BrandResult.BrandDataList[0].ApplicationNo
+                    });
+                }
 
             }
 

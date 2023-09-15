@@ -5,6 +5,7 @@ using OpenQA.Selenium.Firefox;
 using System.Text.Json;
 using Core.Models;
 using Infrastructure.Services.Abstract;
+using System.Text.RegularExpressions;
 
 namespace Infrastructure.Services;
 public class TurkPatentService : ITurkPatentService
@@ -14,17 +15,34 @@ public class TurkPatentService : ITurkPatentService
 
     public IWebDriver driver { get; set; }
     public IDriverContainer driverContainer { get; set; }
+    private IWebDriver brandSearchDriver { get; set; }
 
-    public TurkPatentService(IDriverContainer container)
+    public TurkPatentService(IDriverContainer container, IWebDriver webDriver)
     {
         driverContainer = container;
+        brandSearchDriver = webDriver;
+        SetDriver(brandSearchDriver);
     }
 
+    private void SetDriver(IWebDriver webDriver)
+    {
+        webDriver.Navigate().GoToUrl(Url);
+
+        webDriver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(10);
+
+        var tabButtons = webDriver.FindElements(By.CssSelector("button.MuiButtonBase-root.MuiTab-root.MuiTab-textColorInherit.jss32"));
+
+        var buttonFileSearch = tabButtons[1];
+
+        buttonFileSearch.Click();
+    }
     #endregion
 
-    public TPFileSearchResultModel Scrape(TPSearchModel model)
+    #region  Brand Search
+    public TPBrandResultModel ScrapeBrandList(TPSearchModel model)
     {
         #region Setting Driver
+
         var requestedDriver = driverContainer.GetDriver(model.UserId, Url);
 
         if (requestedDriver == null)
@@ -32,40 +50,15 @@ public class TurkPatentService : ITurkPatentService
 
         this.driver = requestedDriver;
 
-        #endregion
-
-
-        #region Marka Araştırma mı Dosya Takibi mi
-
-        /*
-         * Marka araştırma mı dosya takibi mi?
-         * 
-         * Mark Araştırma ise yeni arama mı yoksa devam eden mi?
-         * 
-         * Dosya takibi hep yeni olacak.
-         */
-
-        //Dosya takibi
-        if (model.SearchType == TPSearchType.ChaseFile)
-        {
-            return GetDetail(model);
-        }
-
-        //Marka Araştırma 
-        return GetBrandList(model);
-        #endregion
-
-    }
-
-    public TPFileSearchResultModel GetBrandList(TPSearchModel model)
-    {
         driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(10);
 
+        #endregion
+
         #region Yeni arama mı devam eden mi
+
+        #region Devam Eden Arama
         if (model.TotalPages > 0 && model.NextPage > model.CurrentPage)
         {
-            //Devam Eden Arama
-
             //* Sonraki sayfayı getir
             if (model.NextPage > model.TotalPages) return null;
 
@@ -88,74 +81,155 @@ public class TurkPatentService : ITurkPatentService
 
             return ProcessTable();
         }
-        else
+        #endregion
+
+        #region Yeni Arama
+
+        //Inputları yaz
+        try
         {
-            //Inputları yaz
-            try
+            var tabButtons = driver.FindElements(By.CssSelector("button.MuiButtonBase-root.MuiTab-root.MuiTab-textColorInherit.jss32"));
+
+            var buttonBrandSearch = tabButtons[0];
+
+            buttonBrandSearch.Click();
+
+            //find input fields with class names MuiInputBase-input MuiInput-input
+            var inputElements = driver.FindElements(By.CssSelector("input.MuiInputBase-input.MuiInput-input"));
+
+            //fill input fields
+            if (model.ApplicationOwner != null) inputElements[1].SendKeys(model.ApplicationOwner);
+            if (model.BrandAdvertisementBulletinNumber != null) inputElements[2].SendKeys(model.BrandAdvertisementBulletinNumber);
+            if (model.IndividualNumber != null) inputElements[3].SendKeys(model.IndividualNumber);
+
+            //Sorgula butonunu bul
+            var searchButton = driver.FindElement(By.CssSelector("button.MuiButtonBase-root.MuiButton-root.MuiButton-contained.MuiButton-containedSecondary"));
+
+            searchButton.Click();
+        }
+        catch (NoSuchElementException ex)
+        {
+            Console.WriteLine("Yeni sorgu için inputları girerken hata." + ex.Message);
+        }
+
+        //3 saniye bekle
+        Thread.Sleep(3000);//TODO refactor
+
+        return ProcessTable();
+
+        #endregion
+        #endregion
+    }
+
+
+
+    private TPBrandResultModel ProcessTable()
+    {
+        TPBrandResultModel resultModel = new TPBrandResultModel();
+        resultModel.BrandDataList = new List<TPBrandData>();
+
+        #region Kayıt sayısını getir
+        try
+        {
+            // IWebElement tableContainer = driver.FindElement(By.XPath("//main/div[2]/div/div[2]"));
+
+            IWebElement searchResultContainer = driver.FindElement(By.Id("search-results"));
+
+            if (searchResultContainer.Text == "Sonuç bulunamadı") return null;
+
+            IWebElement tableContainer = searchResultContainer.FindElement(By.XPath("//div[2]"));
+
+
+            IWebElement recordCountElement = tableContainer.FindElement(By.XPath("//p"));
+
+            ExtractPageCount(resultModel, recordCountElement.Text);
+
+
+            var tableBodyElement = tableContainer.FindElement(By.XPath("//div/div/table/tbody"));
+
+            var rows = tableBodyElement.FindElements(By.TagName("tr"));
+
+            foreach (var row in rows)
             {
-                var tabButtons = driver.FindElements(By.CssSelector("button.MuiButtonBase-root.MuiTab-root.MuiTab-textColorInherit.jss32"));
+                var brandData = new TPBrandData();
 
-                var buttonBrandSearch = tabButtons[0];
+                var tds = row.FindElements(By.TagName("td"));
 
-                buttonBrandSearch.Click();
+                resultModel.BrandDataList.Add(new TPBrandData
+                {
+                    BrandName = tds[2].Text,
+                    ApplicationNo = tds[1].Text
 
-                //find input fields with class names MuiInputBase-input MuiInput-input
-                var inputElements = driver.FindElements(By.CssSelector("input.MuiInputBase-input.MuiInput-input"));
-
-                //fill input fields
-                if (model.ApplicationOwner != null) inputElements[1].SendKeys(model.ApplicationOwner);
-                if (model.BrandAdvertisementBulletinNumber != null) inputElements[2].SendKeys(model.BrandAdvertisementBulletinNumber);
-                if (model.IndividualNumber != null) inputElements[3].SendKeys(model.IndividualNumber);
-
-                //Sorgula butonunu bul
-                var searchButton = driver.FindElement(By.CssSelector("button.MuiButtonBase-root.MuiButton-root.MuiButton-contained.MuiButton-containedSecondary"));
-
-                searchButton.Click();
-            }
-            catch (NoSuchElementException ex)
-            {
-                Console.WriteLine("Yeni sorgu için inputları girerken hata." + ex.Message);
+                });
             }
 
-            //Sayfayı getir
-            //3 saniye bekle
-            Thread.Sleep(3000);//TODO refactor
-
-            return ProcessTable();
+        }
+        catch (NoSuchElementException ex)
+        {
+            Console.WriteLine("Kayıt sayısını gösteren eleman bulunamadı" + ex.Message);
+            return null;
         }
 
         #endregion
 
+        return resultModel;
     }
 
+    private void ExtractPageCount(TPBrandResultModel model, string metin)
+    {
+        string sayfaDeseni = @"Sayfa (\d+) \/ (\d+)";
 
-    public TPFileSearchResultModel ProcessTable()
+        // Metindeki tüm sayıları alalım
+        Match sayfaEslesme = Regex.Match(metin, sayfaDeseni);
+
+        if (sayfaEslesme.Success)
+        {
+            // Sayfa numarasını ve toplam sayfa sayısını alalım
+            int sayfaNumarasi = 0;
+            int.TryParse(sayfaEslesme.Groups[1].Value, out sayfaNumarasi);
+
+            int toplamSayfaSayisi = 0;
+            int.TryParse(sayfaEslesme.Groups[2].Value, out toplamSayfaSayisi);
+
+            model.CurrentPage = sayfaNumarasi;
+            model.TotalPages = toplamSayfaSayisi;
+        }
+        else
+        {
+            Console.WriteLine("Metinde beklenen desenler bulunamadı.");
+            model.TotalPages = 0;
+            model.CurrentPage = 0;
+        }
+
+    }
+
+    private TPFileSearchResultModel ProcessRow()
     {
         return null;
     }
-    public TPFileSearchResultModel GetDetail(TPSearchModel model)
+    #endregion
+
+    #region  File Detail
+    public TPFileSearchResultModel ScrapeFileDetail(TPSearchModel model)
     {
-        driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(10);
 
-        driver.Navigate().GoToUrl(Url);
+        //brand tab 
+        var inputElements = brandSearchDriver.FindElements(By.CssSelector("input.MuiInputBase-input.MuiInput-input"));
 
-        var tabButtons = driver.FindElements(By.CssSelector("button.MuiButtonBase-root.MuiTab-root.MuiTab-textColorInherit.jss32"));
+        //inputları temizle
+        foreach (var inputElement in inputElements)
+        {
+            inputElement.Clear();
+        }
 
-        var buttonFileSearch = tabButtons[1];
-
-        buttonFileSearch.Click();
-
-        //find input fields with class names MuiInputBase-input MuiInput-input
-        var inputElements = driver.FindElements(By.CssSelector("input.MuiInputBase-input.MuiInput-input"));
-
-        //fill input fields
+        //inputları gir
         if (model.ApplicationNumber != null) inputElements[0].SendKeys(model.ApplicationNumber);
         if (model.RegistrationNumber != null) inputElements[1].SendKeys(model.RegistrationNumber);
         if (model.ApplicantInfo != null) inputElements[2].SendKeys(model.ApplicantInfo);
         if (model.BulletinNumber != null) inputElements[3].SendKeys(model.BulletinNumber);
 
         //find search button
-        var searchButton = driver.FindElement(By.CssSelector("button.MuiButtonBase-root.MuiButton-root.MuiButton-contained.MuiButton-containedSecondary"));
+        var searchButton = brandSearchDriver.FindElement(By.CssSelector("button.MuiButtonBase-root.MuiButton-root.MuiButton-contained.MuiButton-containedSecondary"));
 
         searchButton.Click();
 
@@ -243,7 +317,7 @@ public class TurkPatentService : ITurkPatentService
     {
         try
         {
-            return driver.FindElements(By.TagName("fieldset"));
+            return brandSearchDriver.FindElements(By.TagName("fieldset"));
         }
         catch (NoSuchElementException e)
         {
@@ -475,5 +549,6 @@ public class TurkPatentService : ITurkPatentService
         return ("", "");
     }
 
+    #endregion
     #endregion
 }

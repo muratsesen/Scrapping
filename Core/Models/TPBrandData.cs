@@ -1,7 +1,14 @@
-﻿public class TPFileSearchResultModel
+﻿using Core.Models;
+
+public class TPBrandResultModel : SearchBase
 {
-    public TPBrandData BrandData { get; set; }
-    public List<TPGoodsAndService> GoodsAndServices { get; set; }
+    public List<TPBrandData>? BrandDataList { get; set; }
+}
+
+public class TPFileSearchResultModel : SearchBase
+{
+    public TPBrandData? BrandData { get; set; }
+    public List<TPGoodsAndService>? GoodsAndServices { get; set; }
 }
 
 public class TPBrandData
