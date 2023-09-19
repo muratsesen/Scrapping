@@ -1,13 +1,12 @@
 using System.ComponentModel.DataAnnotations;
 using Core.Models;
 
-public class WipoSearchModel
+public class WipoSearchModel:SearchBase
 {
     public string RegistrationNo { get; set; }//="1254874";
     public string BaseNo { get; set; }
     public string HolderName { get; set; }// = "beko";
-    public int CurrentPage { get; set; } = 1;
-    public int TotalPages { get; set; } = 0;
+    public string UserId { get; set; }
 }
 public class TPSearchInFilesModel
 {

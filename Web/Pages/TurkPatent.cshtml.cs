@@ -21,6 +21,7 @@ namespace Web.Pages
         [BindProperty]
         public string useId { get; set; }
 
+
         public TPBrandData BrandData { get; set; }
         public List<TPGoodsAndService> GoodsAndServices { get; set; }
 

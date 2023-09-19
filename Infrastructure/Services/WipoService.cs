@@ -7,49 +7,34 @@ using Core.Models;
 using OpenQA.Selenium.Support.UI;
 using OpenQA.Selenium.Remote;
 using SeleniumExtras.WaitHelpers;
+using Infrastructure.Services.Abstract;
 
 namespace Infrastructure.Services;
 public class WipoService : IWipoService
 {
-    private readonly IWebDriver driver;
+    private IWebDriver driver;
 
-    public object ExpectedConditions { get; private set; }
+    private string Url = "https://www3.wipo.int/madrid/monitor/en/";
 
-    public WipoService(IWebDriver _driver)
+    public IDriverContainer driverContainer { get; set; }
+
+
+    public WipoService(IDriverContainer container)
     {
-        driver = _driver;
+        driverContainer = container;
     }
 
-    public (WipoSearchResult, bool) GetList(WipoSearchModel model)
+    public WipoSearchResult Scrape(WipoSearchModel model)
     {
+        driver = driverContainer.GetDriver(model.UserId, Url);
+
+        if(driver == null)
+        {
+            return null;
+        }
 
         driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(10);
-        try
-        {
-            driver.Navigate().GoToUrl("https://www3.wipo.int/madrid/monitor/en/");
-
-        }
-        catch (Exception ex)
-        {
-            driver.Quit();
-            return (null, false);
-        }
-        // Wait for the page to load
-        //WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(10));
-
-        //// Define the condition to wait for (e.g., an element that appears when the page is loaded)
-        //By condition = By.Id("some-element-id"); // Replace with the actual element ID or another suitable condition
-
-        //// Wait until the condition is met
-        //wait.Until(ExpectedConditions.Element(condition));
-
-        //driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromMilliseconds(500);
-
-
-        //-----
-        //WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(20));
-        //wait.PollingInterval = TimeSpan.FromMilliseconds(200); wait.Until(ExpectedConditions.ElementIsVisible(By.Id("my-element']"))).Click();
-        //------
+        
         var advanceSearchButton = driver.FindElement(By.Id("advancedModeLink"));
         advanceSearchButton.Click();
 
@@ -79,7 +64,7 @@ public class WipoService : IWipoService
         return result;
     }
 
-    public (WipoSearchResult, bool) ProcessResult(int page = 1)
+    public WipoSearchResult ProcessResult(int page = 1)
     {
         IWebElement pageCountElement = driver.FindElement(By.ClassName("pageCount"));
 
@@ -91,16 +76,16 @@ public class WipoService : IWipoService
         wipoSearchResult.Details = new List<SearchResultDetail>();
 
         if (string.IsNullOrEmpty(pageCountText))
-            return (wipoSearchResult, false); // No data
+            return wipoSearchResult; // No data
 
         var pageCount = ExtractNumber(pageCountText);
 
-        if (pageCount == -1) return (null, false); // No data
+        if (pageCount == -1) return null; // No data
 
         if (pageCount == 1)
         {
             var rowCount = RowCount();//tek satır olsa da iki geliyor çünkü görünmeyen bir satır var
-            if (rowCount == 0) return (null, false); // No data
+            if (rowCount == 0) return null; // No data
 
             if (rowCount == 2)
             {
@@ -109,7 +94,7 @@ public class WipoService : IWipoService
 
                 wipoSearchResult.Details.Add(detail);
 
-                return (wipoSearchResult, true);
+                return wipoSearchResult;
             }
         }
 
@@ -118,7 +103,7 @@ public class WipoService : IWipoService
 
         if (page == 1)
         {
-            //MEvcut sayfayı işle
+            //Mevcut sayfayı işle
             var pageData = ProcessPage();
 
             wipoSearchResult.Details.AddRange(pageData);
@@ -153,7 +138,7 @@ public class WipoService : IWipoService
 
             wipoSearchResult.Details.AddRange(pageData);
         }
-        return (wipoSearchResult, false);
+        return wipoSearchResult;
     }
     public int RowCount()
     {

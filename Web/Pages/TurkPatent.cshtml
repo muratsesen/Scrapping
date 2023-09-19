@@ -6,15 +6,21 @@
 
 <ul class="nav nav-tabs" id="myTab" role="tablist">
     <li class="nav-item" role="presentation">
-        <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#home" type="button"
-                role="tab" aria-controls="home" aria-selected="true">
+        <button class="nav-link" id="home-tab" data-bs-toggle="tab" data-bs-target="#home" type="button" role="tab"
+            aria-controls="home" aria-selected="true">
             Marka Araştırma
         </button>
     </li>
     <li class="nav-item" role="presentation">
         <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile" type="button"
-                role="tab" aria-controls="profile" aria-selected="false">
+            role="tab" aria-controls="profile" aria-selected="false">
             Dosya Takibi
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="test-tab" data-bs-toggle="tab" data-bs-target="#test" type="button" role="tab"
+            aria-controls="test" aria-selected="false">
+            Tests
         </button>
     </li>
 </ul>
@@ -34,7 +40,8 @@
                 <input asp-for="BrandSearchModel.ApplicationOwner" class="form-control" />
             </div>
             <div class="form-group">
-                <label asp-for="BrandSearchModel.BrandAdvertisementBulletinNumber">Brand Advertisement Bulletin Number</label>
+                <label asp-for="BrandSearchModel.BrandAdvertisementBulletinNumber">Brand Advertisement Bulletin
+                    Number</label>
                 <input asp-for="BrandSearchModel.BrandAdvertisementBulletinNumber" class="form-control" />
             </div>
             <div class="form-group">
@@ -68,27 +75,40 @@
             <button type="submit" class="btn btn-primary">Sorgula</button>
         </form>
     </div>
+
+    <div class="tab-pane fade" id="test" role="tabpanel" aria-labelledby="test-tab">
+<h3>Test</h3>
+        <form method="post" asp-page-handler="Files">
+
+            <div class="form-group">
+                <label asp-for="SearchFilesModel.ApplicationNumber"></label>
+                <input asp-for="SearchFilesModel.ApplicationNumber" value="" class="form-control" />
+            </div>
+            
+            <button type="submit" class="btn btn-primary">Sorgula</button>
+        </form>
+    </div>
 </div>
 
-<h1>Brand Data</h1>
 @if (Model.BrandData != null)
 {
+    <h1>Brand Data</h1>
     <img src="@Model.BrandData.LogoUrl" alt="Logo" />
     <!-- Similar lines for other properties -->
 }
 
-<h1>Goods and Services</h1>
 @if (Model.GoodsAndServices != null && Model.GoodsAndServices.Count > 0)
 {
+    <h1>Goods and Services</h1>
     <table>
-        <thead>
-            <tr>
-                <th>Class Code</th>
-                <th>Content</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var item in Model.GoodsAndServices)
+    <thead>
+        <tr>
+            <th>Class Code</th>
+            <th>Content</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model.GoodsAndServices)
             {
                 <tr>
                     <td>@item.ClassCode</td>
@@ -97,4 +117,36 @@
             }
         </tbody>
     </table>
+}
+
+
+@section Scripts
+    {
+    <script>
+
+        // Check if a tab ID is stored in Session Storage
+        const selectedTabId = sessionStorage.getItem('selectedTabId');
+
+        // If a tab ID is stored, select that tab
+        if (selectedTabId) {
+            const selectedTab = document.querySelector(`[data-bs-target="${selectedTabId}"]`);
+            if (selectedTab) {
+                selectedTab.classList.add('active');
+                const tabContent = document.querySelector(selectedTab.getAttribute('data-bs-target'));
+                if (tabContent) {
+                    tabContent.classList.add('show', 'active');
+                }
+            }
+        }
+
+        // Add an event listener to handle tab selection
+        const tabButtons = document.querySelectorAll('[data-bs-toggle="tab"]');
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                // Get the ID of the selected tab and store it in Session Storage
+                const tabId = button.getAttribute('data-bs-target');
+                sessionStorage.setItem('selectedTabId', tabId);
+            });
+        });
+    </script>
 }
